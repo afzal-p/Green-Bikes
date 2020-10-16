@@ -1,3 +1,4 @@
+#modules
 import sys
 from flask import Flask, render_template, request, redirect, g, session, flash, send_from_directory,url_for
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
@@ -7,7 +8,7 @@ import os
 import sqlite3
 from sqlite3 import Error
 
-
+#secret key
 app = Flask(__name__)
 app.secret_key = "fruit_music_COFFEE_DRIP__$_5_usa_rope_LAPTOP_Q_drip_9_ROPE_$_LAPTOP_zip_XBOX_yelp_hut_&"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -43,8 +44,9 @@ def protected(filename):
         #print(session['user'], file=sys.stdout)
         return redirect(url_for('homePage'))
 
-
+#link to db
 DATABASE = '/Users/afzal/Downloads/gb20/user.db'
+#currect table attributes
   #(id,first,last,year,school,email,phone,username,hash)
 def get_db():
     db = getattr(g, '_database', None)
@@ -93,7 +95,6 @@ def login():
             if(check_password_hash(checkHash, pw)):
                 session['logged'] = True 
                 session['user'] = un
-                flash("Welcome " + un)
                 return render_template("homePage.html", user=un)
             else:
                 flash("invalid credentials. Please try again.")
@@ -126,6 +127,7 @@ def register():
         i2 = int(request.form["id_two"])
         hashPSW = generate_password_hash(password)
 
+        #check email
         if('@' not in email):
             flash("invalid email address")
             return render_template("registration.html")
@@ -186,10 +188,10 @@ def register():
         cur.execute("""INSERT INTO users VALUES (?,?,?,?,?,?,?,?,?)""",(idNum,firstName,lastName,year,school,email,tele,user,hashPSW))
         conn.commit()
         flash("Registration Successful. Please login.")
-        return render_template("registration.html")
+        return redirect(url_for('login'))
     except:
         render_template("registration.html")
-    return render_template("registration.html")
+    return redirect(url_for('login'))
 
 @app.route("/passwordHelp", methods=["GET","POST"])
 def reset():

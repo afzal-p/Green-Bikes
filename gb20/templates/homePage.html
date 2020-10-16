@@ -4,10 +4,11 @@
 
 {% block body %} 
 
-<img src="static/logo_1.png" class="logo" alt="Pomona Green Bikes Logo">
+<!--img src="static/logo.png" class="logo" alt="Pomona Green Bikes Logo"-->
 <div>
-    Welcome to Pomona Green Bike's Online Tool! You are signed in as: {{ user }}.
-</div>
+    Welcome to the Green Bikes Website! You are signed in as: {{ user }}.
+</div> <br>
+ <input placeholder="Search for Bike"> </input> 
 
 <div><br><br>
     {% block content %}
@@ -17,9 +18,10 @@
         {% elif session['logged'] == True %}
             <a href="/logout"><button>Logout</button></a>
         {% else %}
-            <a href="/login"><button>Login</button></a>
-            <a href="/register"><button>Register</button></a>
-            <a href="/passwordHelp"><button>Help</button></a>
+             <a href="/login"><button>Login</button></a> 
+          <a href="/register"><button>Register</button></a> 
+         <!--  <a href="/passwordHelp"><button>Exchange</button></a> -->
+         <!--  <a href="/passwordHelp"><button>Repair</button></a> -->
         {% endif %}
     {% endblock content %}
 </div>
