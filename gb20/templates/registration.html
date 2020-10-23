@@ -12,7 +12,10 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    
+    <p>
+        Student Users: Please complete the form <br>
+        Community Users: Ignore the fields related to ID, School, Year, and raffle,
+    </p>
 <form method="post" action="{{ url_for('register') }}">
     <input type="text" name="email" placeholder="e-mail"><br><br>
     <input type="text" name="user" placeholder="select a username"><br><br>
@@ -34,10 +37,10 @@
     <label for="2021">2021</label><br>
 
     <input type="radio" id="2022" name="year" value="2022">
-    <label for="2021">2022</label><br>
+    <label for="2022">2022</label><br>
 
     <input type="radio" id="2023" name="year" value="2023">
-    <label for="2021">2023</label><br>
+    <label for="2023">2023</label><br>
 
     <input type="radio" id="2024" name="year" value="2024">
     <label for="2024">2024</label><br>
@@ -61,9 +64,9 @@
     <input type="radio" id="Pitzer" name="school" value="PZR">
     <label for="Pitzer">PZR</label><br><br>
 
-    <input type="checkbox" id="raffleNo" name="raffleTerms" value="">
-    <label for="raffleNo"> Participate in Raffle</label><br>
-    <input type="checkbox" id="termsagreement" name="agreement">
+    <input type="checkbox" name="raffleTerms">
+    <label for="raffleTerms"> Participate in Raffle</label><br>
+    <input type="checkbox" name="agreement">
     <label for="agreement"> I agree to terms...</label><br><br>
 
 

@@ -12,8 +12,8 @@
 
 <div><br><br>
     {% block content %}
-        {% if ( (session['logged'] == True) and ("Green47" == session['user']) ) %}
-            <a href="/protected/mainTool.html"><button>Admin Tools</button></a>
+        {% if ( (session['logged'] == True) and ("green47" == session['user']) ) %}
+            <a href="/mainTool" target="_blank"><button>user db</button></a>
             <a href="/logout"><button>Logout</button></a>
         {% elif session['logged'] == True %}
             <a href="/logout"><button>Logout</button></a>
