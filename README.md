@@ -4,8 +4,8 @@ some paths may need to be changed for the database
 
 #different commands to run the app:
 
-FLASK_APP=main.py flask run
-FLASK_APP=main.py FLASK_DEBUG=1 flask run
+FLASK_APP=main.py flask run or
+FLASK_APP=main.py FLASK_DEBUG=1 flask run or
 FLASK_APP=main.py flask run
 
 
