@@ -226,6 +226,8 @@ def staffReg():
             user = request.form["user"]
             password = str(request.form["password"])
             p2 = str(request.form["p_two"])
+            word = str(request.form["word"])
+            hashWord = generate_password_hash(word)
             hashPSW = generate_password_hash(password)
 
             try:
@@ -233,6 +235,9 @@ def staffReg():
             except:
                 tele = -1
 
+            if not word:
+                flash("Please choose a secret word")
+                return render_template("staff.html")
 
         #check phone #
             if(tele == -1):
@@ -317,7 +322,7 @@ def staffReg():
         #staff user
             if(accType==1):
                 try:
-                    cur.execute("""INSERT INTO Staff VALUES (?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele, year))
+                    cur.execute("""INSERT INTO Staff VALUES (?,?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele, year,hashWord))
                     conn.commit()
                     flash("Registration Successful for Staff User! Please login.")
                     return redirect(url_for('staffLogin'))
@@ -354,7 +359,8 @@ def stuReg():
             user = request.form["user"]
             password = str(request.form["password"])
             p2 = str(request.form["p_two"])
-            
+            word = str(request.form["word"])
+            hashWord = generate_password_hash(word)
             hashPSW = generate_password_hash(password)
         #default raffleNum: not participating
             raffleNum = -1
@@ -365,6 +371,9 @@ def stuReg():
             if request.form.get("raffleTerms"):
                 raffleNum = random.randint(0,255)
 
+            if not word:
+                flash("Please choose a secret word")
+                return render_template("stuReg.html")
         #all users must agree to terms / (todo: create terms in html)
             if not request.form.get("agreement"):
                 flash("Please read through and agree to the terms")
@@ -430,7 +439,7 @@ def stuReg():
         #student users
             if(accType==2):
                 try:
-                    cur.execute("""INSERT INTO Students VALUES (?,?,?,?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele,year,school,raffleNum, balance))
+                    cur.execute("""INSERT INTO Students VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele,year,school,raffleNum, balance, hashWord))
                     conn.commit()
                     flash("Registration Successful for Student User! Please login.")
                     return redirect(url_for('stuLogin'))
@@ -462,13 +471,16 @@ def commReg():
             user = request.form["user"]
             password = str(request.form["password"])
             p2 = str(request.form["p_two"])
-            
+            word = str(request.form["word"])
+            hashWord = generate_password_hash(word)
             hashPSW = generate_password_hash(password)
       
         #default account balance
             balance = float(0)
     
-
+            if not word:
+                flash("Please choose a secret word")
+                return render_template("commReg.html")
         #all users must agree to terms / (todo: create terms in html)
             if not request.form.get("agreement"):
                 flash("Please read through and agree to the terms")
@@ -523,7 +535,7 @@ def commReg():
         #community users        
             if(accType==3):
                 try:
-                    cur.execute("""INSERT INTO Community VALUES (?,?,?,?,?,?,?)""",(user,hashPSW,firstName,lastName,email,tele,balance))
+                    cur.execute("""INSERT INTO Community VALUES (?,?,?,?,?,?,?,?)""",(user,hashPSW,firstName,lastName,email,tele,balance,hashWord))
                     conn.commit()
                     flash("Registration Successful for Community User! Please login.")
                     return redirect(url_for('commLogin'))
@@ -536,10 +548,144 @@ def commReg():
     return render_template("commReg.html")
 #end registration 
 
+#begin pw reset
+@app.route("/passwordHelpHome", methods=["GET","POST"])
+def passwordHelpHome():
+    if request.method == "GET":
+        return render_template("passwordHelpHome.html")
 
-@app.route("/passwordHelp", methods=["GET","POST"])
-def reset():
-    return render_template("passwordHelp.html")
+@app.route("/staffHelp", methods=["GET","POST"])
+def staffHelp():
+    if request.method == "GET":
+        return render_template("staffPasswordHelp.html")
+    else:
+        conn = get_db()
+        cur = conn.cursor()
+        try:  
+            un = request.form.get("user")  
+            w = request.form.get("word")
+            p1 = request.form.get("p1")
+            p2 = request.form.get("p2")
+        except:
+            w=-1
+            p1=-1
+            p2=-2
+
+        if ((w or p1) == -1):
+            flash(" invalid. Try Again.")
+            return render_template("staffPasswordHelp.html")
+        if not un:
+            flash(" invalid user. Try Again.")
+            return render_template("staffPasswordHelp.html")
+
+        if (p1 != p2):
+            flash(" passwords do not match")
+            return render_template("staffPasswordHelp.html")
+
+        cur.execute("""SELECT wordHash FROM Staff WHERE userID=:un""",{"un":un})
+        checkHash1=cur.fetchone()[0]
+        if(check_password_hash(checkHash1, w)):
+            newHashPSW = generate_password_hash(p1)
+            try:
+                cur.execute("""UPDATE Staff SET hash=:x WHERE userID=:un""",{"x":newHashPSW,"un":un})
+                conn.commit()
+                flash("Update Successful for Staff User! Please login.")
+                return redirect(url_for('staffLogin'))
+            except:
+                return render_template("staffPasswordHelp.html")
+                
+        else:
+            flash("invalid credentials. Please try again.")
+            return render_template("staffPasswordHelp.html")
+   
+@app.route("/stuHelp", methods=["GET","POST"])
+def stuHelp():
+    if request.method == "GET":
+        return render_template("stuPasswordHelp.html")
+    else:
+        conn = get_db()
+        cur = conn.cursor()
+        try:  
+            un = request.form.get("user")  
+            w = request.form.get("word")
+            p1 = request.form.get("p1")
+            p2 = request.form.get("p2")
+        except:
+            w=-1
+            p1=-1
+            p2=-2
+
+        if ((w or p1) == -1):
+            flash(" invalid. Try Again.")
+            return render_template("stuPasswordHelp.html")
+        if not un:
+            flash(" invalid user. Try Again.")
+            return render_template("stuPasswordHelp.html")
+
+        if (p1 != p2):
+            flash(" passwords do not match")
+            return render_template("stuPasswordHelp.html")
+
+        cur.execute("""SELECT wordHash FROM Students WHERE userID=:un""",{"un":un})
+        checkHash1=cur.fetchone()[0]
+        if(check_password_hash(checkHash1, w)):
+            newHashPSW = generate_password_hash(p1)
+            try:
+                cur.execute("""UPDATE Students SET hash=:x WHERE userID=:un""",{"x":newHashPSW,"un":un})
+                conn.commit()
+                flash("Update Successful for Student User! Please login.")
+                return redirect(url_for('stuLogin'))
+            except:
+                return render_template("stuPasswordHelp.html")
+    
+        else:
+            flash("invalid credentials. Please try again.")
+            return render_template("stuPasswordHelp.html")
+ 
+@app.route("/commHelp", methods=["GET","POST"])
+def commHelp():
+    if request.method == "GET":
+        return render_template("commPasswordHelp.html")
+    else:
+        conn = get_db()
+        cur = conn.cursor()
+        try:  
+            un = request.form.get("user")  
+            w = request.form.get("word")
+            p1 = request.form.get("p1")
+            p2 = request.form.get("p2")
+        except:
+            w=-1
+            p1=-1
+            p2=-2
+
+        if ((w or p1) == -1):
+            flash(" invalid. Try Again.")
+            return render_template("commPasswordHelp.html")
+        if not un:
+            flash(" invalid user. Try Again.")
+            return render_template("commPasswordHelp.html")
+
+        if (p1 != p2):
+            flash(" passwords do not match")
+            return render_template("commPasswordHelp.html")
+
+        cur.execute("""SELECT wordHash FROM Community WHERE userID=:un""",{"un":un})
+        checkHash1=cur.fetchone()[0]
+        if(check_password_hash(checkHash1, w)):
+            newHashPSW = generate_password_hash(p1)
+            try:
+                cur.execute("""UPDATE Community SET hash=:x WHERE userID=:un""",{"x":newHashPSW,"un":un})
+                conn.commit()
+                flash("Update Successful for Staff User! Please login.")
+                return redirect(url_for('commLogin'))
+            except:
+                return render_template("commPasswordHelp.html")
+
+        else:
+            flash("invalid credentials. Please try again.")
+            return render_template("commPasswordHelp.html")
+#end pw reset
 
 
 @app.route("/rent")
