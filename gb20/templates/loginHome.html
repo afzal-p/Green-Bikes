@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+
+{% block title%} Login {% endblock %}
+
+{% block body %} 
+
+<div>
+<p>Are you a:</p>
+<a href="/staffLogin"><button>Staff User</button></a>
+<a href="/stuLogin"><button>Student User</button></a>
+<a href="/commLogin"><button>Community User</button></a>
+</div>
+
+<div><br><br>
+<a href="/registerHome"><button>Register</button></a>
+<a href="/passwordHelp"><button>Help</button></a>
+<a href="/"><button>Home</button></a>
+
+</div>
+{% endblock %}

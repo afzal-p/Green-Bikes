@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block title%} Register {% endblock %}
+
+{% block body %} 
+
+<div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <p>staff registration</p>
+<form method="post" action="{{ url_for('staffReg') }}">
+    <input type="text" name="email" placeholder="e-mail"><br><br>
+    <input type="text" name="user" placeholder="select a username"><br><br>
+    <input type="password" name="password" placeholder="select a password"><br><br>
+    <input type="password" name="p_two" placeholder="re-enter password"><br><br>
+
+    <input type="text" name="firstName" placeholder="first name"><br><br>
+
+    <input type="text" name="lastName" placeholder="last name"><br><br>
+
+    <input type="text" name="idNum" placeholder="student ID number"><br><br>
+
+    <input type="text" name="id_two" placeholder="verify ID number"><br><br>
+    <input type="text" name="tele" placeholder="phone #"><br><br>
+
+       
+    <p>Year</p>
+    <input type="radio" id="2021" name="year" value="2021">
+    <label for="2021">2021</label><br>
+
+    <input type="radio" id="2022" name="year" value="2022">
+    <label for="2022">2022</label><br>
+
+    <input type="radio" id="2023" name="year" value="2023">
+    <label for="2023">2023</label><br>
+
+    <input type="radio" id="2024" name="year" value="2024">
+    <label for="2024">2024</label><br>
+
+  
+    <br>  
+  
+    <p>College</p>
+    <input type="radio" id="Pomona" name="school" value="POM">
+    <label for="Pomona">POM</label><br>
+
+    <input type="checkbox" name="agreement">
+    <label for="agreement"> I agree to terms...</label><br><br>
+
+    <input type="submit">
+</form>
+</div>
+
+<div>
+<a href="/loginHome"><button>Login</button></a>
+<a href="/passwordHelp"><button>Help</button></a>
+<a href="/registerHome"><button>Back</button></a>
+<a href="/"><button>Home</button></a>
+</div>
+{% endblock %}
