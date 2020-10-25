@@ -37,7 +37,8 @@ def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("user") is None:
-            return redirect("/login")
+            session["user"] = "Guest"
+            return redirect("/loginHome")
         return f(*args, **kwargs)
     return decorated_function
 
@@ -48,30 +49,32 @@ def special_requirement(f):
             if "green47" == session['user']:
                 return f(*args,**kwargs)
             else:
-                return redirect(url_for('homePage'))
+                return redirect(url_for('logout'))
     
         except:
-            return redirect(url_for('homePage'))
+            return redirect(url_for('logout'))
     return wrap
 
 @app.route("/mainTool",methods=["GET"])
-@login_required
+#@login_required
 @special_requirement
 def staff():
-    try:
-        user = session['user']
-        con = get_db()
-        cur = con.cursor()
-        cur.execute("SELECT * from Staff")
-        staff_data = cur.fetchall()
-        cur.execute("SELECT * from Students")
-        student_data = cur.fetchall()
-        cur.execute("SELECT * from Community")
-        community_data = cur.fetchall()
-        return render_template("mainTool.html", data1=staff_data,data2=student_data,data3=community_data,user=user)
-    except Exception as e:
-        print(e, file=sys.stdout)
-        return redirect(url_for('homePage'))
+    if request.method == "GET":
+        try:
+            user = session['user']
+            con = get_db()
+            cur = con.cursor()
+            cur.execute("SELECT * from Staff")
+            staff_data = cur.fetchall()
+            cur.execute("SELECT * from Students")
+            student_data = cur.fetchall()
+            cur.execute("SELECT * from Community")
+            community_data = cur.fetchall()
+            return render_template("mainTool.html", data1=staff_data,data2=student_data,data3=community_data,user=user)
+        except Exception as e:
+        #print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
+ 
 
 @app.route("/",methods=["GET","POST"])
 def homePage():
@@ -82,7 +85,11 @@ def homePage():
 @app.route("/loginHome", methods=["GET"])
 def loginHome():
     if request.method == "GET":
-        return render_template("loginHome.html")
+        try:
+            user=session["user"]
+        except:
+            user="Guest"
+        return render_template("loginHome.html",user=user)
 
 @app.route("/staffLogin", methods=["GET","POST"])
 def stafflogin():
