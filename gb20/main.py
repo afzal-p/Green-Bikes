@@ -55,6 +55,21 @@ def special_requirement(f):
             return redirect(url_for('logout'))
     return wrap
 
+#restrict renting
+def special_requirement2(f):
+    @wraps(f)
+    def wrap(*args,**kwargs):
+        try:
+            if session['type'] == 'Student':
+                return f(*args,**kwargs)
+            else:
+                return redirect(url_for('logout'))
+    
+        except:
+            return redirect(url_for('logout'))
+    return wrap
+
+
 @app.route("/mainTool",methods=["GET"])
 #@login_required
 @special_requirement
@@ -158,6 +173,7 @@ def stulogin():
             if(check_password_hash(checkHash1, pw)):
                 session['logged'] = True 
                 session['user'] = un
+                session['type'] = 'Student'
                 return render_template("homePage.html", user=un)
             else:
                 flash("invalid credentials. Please try again.")
@@ -697,8 +713,20 @@ def commHelp():
 
 @app.route("/rent")
 @login_required
+@special_requirement2
 def checkout():
-    return render_template("rent.html")
+    if request.method == "GET":
+        try:
+            user = session['user']
+            con = get_db()
+            cur = con.cursor()
+            cur.execute("SELECT * from GB")
+            bike_data = cur.fetchall()
+  
+            return render_template("rent.html", data=bike_data,user=user)
+        except Exception as e:
+        #print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
 
 
 @app.route("/logout")
