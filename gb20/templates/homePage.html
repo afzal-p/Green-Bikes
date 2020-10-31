@@ -5,6 +5,17 @@
 {% block body %} 
 
 <img src="static/logo.png" class="logo" alt="Pomona Green Bikes Logo">
+
+<div>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+</div>
+
 <div>
         {% if ( (session['logged'] == True) ) %}
         <p>Welcome to the Green Bikes Website! You are signed in as: {{ session['user'] }}.</p>

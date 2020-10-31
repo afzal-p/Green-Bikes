@@ -716,8 +716,7 @@ def commHelp():
 @app.route("/rent",methods=["GET","POST"])
 @login_required
 @special_requirement2
-def checkout():
-
+def rent():
     if request.method == "GET":
         #only students see this data
         try:
@@ -730,6 +729,7 @@ def checkout():
             checkUser1 = cur.fetchone()[0]
   
             if(checkUser1):
+                flash("You have already reserved a bike. Please unreserve in 'My Bike' ")
                 return redirect(url_for('homePage'))
        
             cur.execute("SELECT * from GB")
@@ -747,19 +747,29 @@ def checkout():
             bikeNo = int(request.form.get('bikeNo'))
             user = session["user"]
 
+            #check available again incase another user already added
+            cur.execute("""SELECT available FROM GB WHERE BikeNo=:m""",{"m":bikeNo})
+            checkAvail = cur.fetchone()[0]
+
+            #available may have been changed by another user so we recheck here
+            if(checkAvail):
+
             #print(bikeNo, file=sys.stdout)
-            cur.execute("""INSERT INTO Exchange VALUES (?,?)""",(user,bikeNo))
-            conn.commit()
+                cur.execute("""INSERT INTO Exchange VALUES (?,?)""",(user,bikeNo))
+                conn.commit()
 
-            cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
-            conn.commit()
+                cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
+                conn.commit()
 
-            flash("Resevation Successful!")
-            return redirect(url_for('homePage'))
+                flash("Resevation Successful! See My Bike for your reservation.")
+                return redirect(url_for('homePage'))
+            else:
+                flash("Resevation Unuccessful! Bike already reserved")
+                return redirect(url_for('rent'))
 
         except Exception as e:
-            print(e, file=sys.stdout)
-            return redirect(url_for('logout'))
+            flash("Resevation Unuccessful! Bike already reserved")
+            return redirect(url_for('rent'))
         
 
 @app.route("/manageRent",methods=["GET","POST"])
@@ -780,8 +790,8 @@ def manageRent():
 
             return render_template("manageRent.html",data=bike_data2)
         except Exception as e:
-            print(e, file=sys.stdout)
-            flash("Error. No bike reservation")
+            #print(e, file=sys.stdout)
+            flash("Error. No bike reservation. First reserve a bike under 'Rent'.")
             return redirect(url_for('homePage'))
     if request.method == "POST":
         #students post this data 
@@ -797,7 +807,7 @@ def manageRent():
             cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
             conn.commit()
 
-            flash("Unreseve Successful!")
+            flash("Unreseve Successful! You may reserve another bike")
             return redirect(url_for('homePage'))
 
         except Exception as e:
