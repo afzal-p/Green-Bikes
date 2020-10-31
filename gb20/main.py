@@ -11,7 +11,7 @@ import random
 
 #secret key
 app = Flask(__name__)
-app.secret_key = "fruit_music_COFFEE_DRIP__$_5_usa_rope_LAPTOP_Q_drip_9_ROPE_$_LAPTOP_zip_XBOX_yelp_hut_&"
+app.secret_key = "fruit_music_COffee_AP_&"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 #app.config['TESTING'] = True
 #app.config['ENV'] = 'development'
@@ -42,6 +42,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+#staff only access
 def special_requirement(f):
     @wraps(f)
     def wrap(*args,**kwargs):
@@ -55,7 +56,7 @@ def special_requirement(f):
             return redirect(url_for('logout'))
     return wrap
 
-#restrict renting
+#restrict renting to only students
 def special_requirement2(f):
     @wraps(f)
     def wrap(*args,**kwargs):
@@ -90,7 +91,7 @@ def staff():
         #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
  
-
+#home page
 @app.route("/",methods=["GET","POST"])
 def homePage():
     if request.method == "GET":
@@ -104,7 +105,7 @@ def loginHome():
             user=session["user"]
         except:
             user="Guest"
-        return render_template("loginHome.html",user=user)
+        return render_template("loginHome.html")
 
 @app.route("/staffLogin", methods=["GET","POST"])
 def stafflogin():
@@ -134,7 +135,7 @@ def stafflogin():
             if(check_password_hash(checkHash1, pw)):
                 session['logged'] = True 
                 session['user'] = un
-                return render_template("homePage.html", user=un)
+                return render_template("homePage.html")
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("staffLogin.html")
@@ -174,7 +175,7 @@ def stulogin():
                 session['logged'] = True 
                 session['user'] = un
                 session['type'] = 'Student'
-                return render_template("homePage.html", user=un)
+                return render_template("homePage.html")
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("stuLogin.html")
@@ -213,7 +214,7 @@ def commLogin():
             if(check_password_hash(checkHash1, pw)):
                 session['logged'] = True 
                 session['user'] = un
-                return render_template("homePage.html", user=un)
+                return render_template("homePage.html",)
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("commLogin.html")
@@ -711,15 +712,26 @@ def commHelp():
 #end pw reset
 
 
-@app.route("/rent")
+#begin rent
+@app.route("/rent",methods=["GET","POST"])
 @login_required
 @special_requirement2
 def checkout():
+
     if request.method == "GET":
+        #only students see this data
         try:
+            conn = get_db()
+            cur = conn.cursor()
             user = session['user']
-            con = get_db()
-            cur = con.cursor()
+
+            #students with one reservation cannot reserve again
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":user})
+            checkUser1 = cur.fetchone()[0]
+  
+            if(checkUser1):
+                return redirect(url_for('homePage'))
+       
             cur.execute("SELECT * from GB")
             bike_data = cur.fetchall()
   
@@ -727,8 +739,75 @@ def checkout():
         except Exception as e:
         #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
+    if request.method == "POST":
+        #students post this data to rent
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            bikeNo = int(request.form.get('bikeNo'))
+            user = session["user"]
+
+            #print(bikeNo, file=sys.stdout)
+            cur.execute("""INSERT INTO Exchange VALUES (?,?)""",(user,bikeNo))
+            conn.commit()
+
+            cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
+            conn.commit()
+
+            flash("Resevation Successful!")
+            return redirect(url_for('homePage'))
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
+        
+
+@app.route("/manageRent",methods=["GET","POST"])
+@login_required
+@special_requirement2
+def manageRent():
+    if request.method == "GET":
+        try:
+            user = session['user']
+            conn = get_db()
+            cur = conn.cursor()
+
+            cur.execute("""SELECT BikeNo FROM Exchange WHERE userID=:x""",{"x":user})
+            bike = cur.fetchone()[0]
+            
+            cur.execute("""SELECT * FROM GB WHERE BikeNo=:y""",{"y":bike})
+            bike_data2 = cur.fetchall()
+
+            return render_template("manageRent.html",data=bike_data2)
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Error. No bike reservation")
+            return redirect(url_for('homePage'))
+    if request.method == "POST":
+        #students post this data 
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            bikeNo = int(request.form.get('bikeNo'))
+            user = session["user"]
+            #edit exchange table, add type and set set to unreserve here?
+            cur.execute("""DELETE FROM Exchange WHERE userID=:x""",{"x":user})
+            conn.commit()
+
+            cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
+            conn.commit()
+
+            flash("Unreseve Successful!")
+            return redirect(url_for('homePage'))
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
+#end rent
+   
 
 
+#logout function
 @app.route("/logout")
 @login_required
 def logout():

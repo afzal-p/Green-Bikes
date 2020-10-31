@@ -6,9 +6,12 @@
 
 <img src="static/logo.png" class="logo" alt="Pomona Green Bikes Logo">
 <div>
-    Welcome to the Green Bikes Website! You are signed in as: {{ user }}.
+        {% if ( (session['logged'] == True) ) %}
+        <p>Welcome to the Green Bikes Website! You are signed in as: {{ session['user'] }}.</p>
+        {% else %}
+        <p>Welcome to the Green Bikes Website! Guest User: You are currently not signed in.</p>
+        {% endif %}
 </div> <br>
- <input placeholder="Search for Bike"> </input> 
 
 <div><br><br>
     {% block content %}
@@ -16,7 +19,8 @@
             <a href="/mainTool" target="_blank"><button>user db</button></a>
             <a href="/logout"><button>Logout</button></a>
         {% elif ( (session['logged'] == True) and ("Student" == session['type']) ) %}
-            <a href="/rent" target=_blank><button>Rent</button></a>
+            <a href="/rent" ><button>Rent</button></a>
+            <a href="/manageRent" ><button>My Bike</button></a>
             <a href="/logout"><button>Logout</button></a>
         {% elif session['logged'] == True %}
             <a href="/logout"><button>Logout</button></a>
@@ -32,8 +36,5 @@
 {% endblock %}
 
 
-{% if ( (foo == 'foo' or bar == 'bar') and 
-        (fooo == 'fooo' or baar == 'baar') ) %}
-    <li>some text</li>
-{% endif %}
+
 
