@@ -10,7 +10,7 @@ FLASK_APP=main.py flask run \
 
 #to test multiple users (change to correct port): \
 localhost:port and \
-127.0.0.1:port  \
+127.0.0.1:port  
 
 
 commands to make the existing tables in the user.db file: \
