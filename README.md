@@ -9,8 +9,8 @@ FLASK_APP=main.py FLASK_DEBUG=1 flask run OR \
 FLASK_APP=main.py flask run \
 
 #to test multiple users: \
-http://localhost:port/rent and \
-http://127.0.0.1:port/  \
+localhost:port/rent and \
+127.0.0.1:port/  \
 (change port)
 
 commands to make the existing tables in the user.db file: \
