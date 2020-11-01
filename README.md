@@ -8,10 +8,10 @@ FLASK_APP=main.py flask run OR \
 FLASK_APP=main.py FLASK_DEBUG=1 flask run OR \
 FLASK_APP=main.py flask run \
 
-#to test multiple users: \
-localhost:port/rent and \
+#to test multiple users (change to correct port): \
+localhost:port/ and \
 127.0.0.1:port/  \
-(change port)
+
 
 commands to make the existing tables in the user.db file: \
 'sqlite3' to open sqlite  \
