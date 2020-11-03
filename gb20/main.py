@@ -95,7 +95,7 @@ def staffDBaccess():
 @app.route("/repairRequests",methods=["GET","POST"])
 #@login_required
 @special_requirement
-def repairReq():
+def repairStuReq():
     if request.method == "GET":
         try:
          
@@ -105,7 +105,7 @@ def repairReq():
             repairData = cur.fetchall()
             cur.execute("SELECT * from commRepairRequest")
             repairCommData = cur.fetchall()
-
+           
             return render_template("repairTool.html", data=repairData,data2=repairCommData)
         except Exception as e:
             print(e, file=sys.stdout)
@@ -118,35 +118,44 @@ def repairReq():
 
             bikeNo = int(request.form.get('bikeNo'))
             progress = int(request.form.get('progress'))
-
+            repairID = request.form.get('repairID')
+            #notes = request.form.get('notes')
             status = ''
-            
+            #ready to service
             if (progress == 1):
                 status = 'You may drop-into the shop during working hours'
+            #in progress
             elif (progress == 2):
                 status = 'Your Bike is being repaired..'
+            #mark as finished
             elif (progress == 3):
+                #TODO: once a repair request is marked as finished, send the notes into History in GB for that bike
+                #cur.execute("""SELECT History from GB where BikeNo=:x""",{"x":bikeNo})
+                #oldNotes = cur.fetchone()[0]
+                #newNotes = str(oldNotes)+notes 
+                #cur.execute("""UPDATE GB SET History=:x WHERE BikeNo=:y""",{"x":bikeNo,"y":newNotes})
+                #conn.commit()
                 status = 'Please come pick up ur bike..'
             if (progress == -1):
-                cur.execute("""DELETE FROM studentRepairRequest WHERE BikeNo=:y""",{"y":bikeNo})
+                cur.execute("""DELETE FROM studentRepairRequest WHERE BikeNo=:x AND repairID=:y""",{"x":bikeNo,"y":repairID})
                 conn.commit()
                 flash("Update Successful!")
-                return redirect(url_for('repairReq'))
+                return redirect(url_for('repairStuReq'))
 
                 #staff side
-            cur.execute("""UPDATE studentRepairRequest SET progress=:z WHERE BikeNo=:y""",{"z":progress,"y":bikeNo})
+            cur.execute("""UPDATE studentRepairRequest SET progress=:x WHERE BikeNo=:y AND repairID=:z""",{"x":progress,"y":bikeNo,"z":repairID})
             conn.commit()
                 #student side
-            cur.execute("""UPDATE studentRepairRequest SET status=:z WHERE BikeNo=:y""",{"z":status,"y":bikeNo})
+            cur.execute("""UPDATE studentRepairRequest SET status=:x WHERE BikeNo=:y AND repairID=:z""",{"x":status,"y":bikeNo,"z":repairID})
             conn.commit()
 
             flash("Update Successful!")
-            return redirect(url_for('repairReq'))
+            return redirect(url_for('repairStuReq'))
 
         except Exception as e:
             print(e, file=sys.stdout)
             flash("Update Unsuccessful!")
-            return redirect(url_for('repairReq'))
+            return redirect(url_for('repairStuReq'))
  
 
 @app.route("/repairCommRequests",methods=["POST"])
@@ -161,12 +170,13 @@ def repairCommReq():
 
             user = request.form.get('user')
             progress = int(request.form.get('progress'))
+            repairID = int(request.form.get('repairID'))
 
             if (progress == -1):
-                cur.execute("""DELETE FROM commRepairRequest WHERE userID=:y""",{"y":user})
+                cur.execute("""DELETE FROM commRepairRequest WHERE userID=:y and repairID=:z""",{"y":user,"z":repairID})
                 conn.commit()
                 flash("Deletion Successful!")
-                return redirect(url_for('repairReq'))
+                return redirect(url_for('repairStuReq'))
             
             status = ''
    
@@ -176,25 +186,26 @@ def repairCommReq():
             if (progress == 2):
                 status = 'Your Bike is being repaired..'
             if (progress == 3):
+
                 status = 'Please come pick up ur bike..'
         
 
              #staff side
-            cur.execute("""UPDATE commRepairRequest SET progress=:a WHERE userID=:b""",{"a":progress,"b":user})
+            cur.execute("""UPDATE commRepairRequest SET progress=:a WHERE userID=:b AND repairID=:c""",{"a":progress,"b":user,"c":repairID})
             conn.commit()
             #comm side
-            cur.execute("""UPDATE commRepairRequest SET status=:z WHERE userID=:y""",{"z":status,"y":user})
+            cur.execute("""UPDATE commRepairRequest SET status=:x WHERE userID=:y AND repairID=:z""",{"x":status,"y":user,"z":repairID})
             conn.commit()
             
             flash("Update Successful!")
 
-            return redirect(url_for('repairReq'))
+            return redirect(url_for('repairStuReq'))
 
 
         except Exception as e:
             print(e, file=sys.stdout)
             flash("Update Unsuccessful!")
-            return redirect(url_for('repairReq'))
+            return redirect(url_for('repairStuReq'))
 
 
 @app.route("/rentRequests",methods=["GET","POST"])
@@ -1015,7 +1026,7 @@ def stuRepairRequest():
 
             progress = 0
 
-            cur.execute("""INSERT INTO studentRepairRequest VALUES (?,?,?,?,?,?)""",(user,bike,date,notes,'Sent to Shop',progress))
+            cur.execute("""INSERT INTO studentRepairRequest VALUES (?,?,?,?,?,?,?)""",(user,bike,date,notes,'Sent to Shop',progress,None))
             conn.commit()
             flash("Request Successful! Check Back on the status.")
             return redirect(url_for('manageRent'))
@@ -1056,7 +1067,7 @@ def commRepairRequest():
 
             progress = 0
 
-            cur.execute("""INSERT INTO commRepairRequest VALUES (?,?,?,?,?,?,?)""",(user,model,year,date,notes,'Req sent to Shop',progress))
+            cur.execute("""INSERT INTO commRepairRequest VALUES (?,?,?,?,?,?,?,?)""",(user,model,year,date,notes,'Req sent to Shop',progress,None))
             conn.commit()
             flash("Request Successful! Check back later on the status.")
             return redirect(url_for('commRepairRequest'))
@@ -1064,7 +1075,7 @@ def commRepairRequest():
         except Exception as e:
             print(e, file=sys.stdout)
             flash("Invalid Request")
-            return redirect(url_for('commRepair'))
+            return redirect(url_for('commRepairRequest'))
 
 
 

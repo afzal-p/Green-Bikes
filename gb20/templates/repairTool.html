@@ -38,12 +38,14 @@
         <td>{{item[3]}}</td>
 
 
-        <form method = "post" action="{{ url_for('repairReq') }}" >
+        <form method = "post" action="{{ url_for('repairStuReq') }}" >
         <td><input type="radio"  name="progress" value="-1"></td>
         <td><input type="radio"  name="progress" value="1"></td>
         <td><input type="radio"  name="progress" value="2"></td>
         <td><input type="radio"  name="progress" value="3"></td>  
         <input type="hidden" name="bikeNo" value="{{item[1]}}">
+        <input type="hidden" name="notes" value="{{item[3]}}">
+        <input type="hidden" name="repairID" value="{{item[6]}}">
         <td><input type="submit" value="Confirm"></td>
         </form> 
 
@@ -82,6 +84,7 @@
         <td><input type="radio"  name="progress" value='2'></td>
         <td><input type="radio"  name="progress" value='3'></td>  
         <input type="hidden" name="user" value="{{item[0]}}">
+        <input type="hidden" name="repairID" value="{{item[7]}}">
         <td><input type="submit" value="Confirm"></td>
         </form> 
 
