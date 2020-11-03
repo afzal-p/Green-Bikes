@@ -74,7 +74,7 @@ def special_requirement2(f):
 @app.route("/mainTool",methods=["GET"])
 #@login_required
 @special_requirement
-def staff():
+def staffDBaccess():
     if request.method == "GET":
         try:
             user = session['user']
@@ -91,6 +91,161 @@ def staff():
         #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
  
+
+@app.route("/repairRequests",methods=["GET","POST"])
+#@login_required
+@special_requirement
+def repairReq():
+    if request.method == "GET":
+        try:
+         
+            con = get_db()
+            cur = con.cursor()
+            cur.execute("SELECT * from studentRepairRequest")
+            repairData = cur.fetchall()
+            cur.execute("SELECT * from commRepairRequest")
+            repairCommData = cur.fetchall()
+
+            return render_template("repairTool.html", data=repairData,data2=repairCommData)
+        except Exception as e:
+            print(e, file=sys.stdout)
+    if request.method == "POST":
+        #staff posts this data 
+        
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            bikeNo = int(request.form.get('bikeNo'))
+            progress = int(request.form.get('progress'))
+
+            status = ''
+            
+            if (progress == 1):
+                status = 'You may drop-into the shop during working hours'
+            elif (progress == 2):
+                status = 'Your Bike is being repaired..'
+            elif (progress == 3):
+                status = 'Please come pick up ur bike..'
+            if (progress == -1):
+                cur.execute("""DELETE FROM studentRepairRequest WHERE BikeNo=:y""",{"y":bikeNo})
+                conn.commit()
+                flash("Update Successful!")
+                return redirect(url_for('repairReq'))
+
+                #staff side
+            cur.execute("""UPDATE studentRepairRequest SET progress=:z WHERE BikeNo=:y""",{"z":progress,"y":bikeNo})
+            conn.commit()
+                #student side
+            cur.execute("""UPDATE studentRepairRequest SET status=:z WHERE BikeNo=:y""",{"z":status,"y":bikeNo})
+            conn.commit()
+
+            flash("Update Successful!")
+            return redirect(url_for('repairReq'))
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Update Unsuccessful!")
+            return redirect(url_for('repairReq'))
+ 
+
+@app.route("/repairCommRequests",methods=["POST"])
+#@login_required
+@special_requirement
+def repairCommReq():
+    if request.method == "POST":
+        #staff posts this data 
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            user = request.form.get('user')
+            progress = int(request.form.get('progress'))
+
+            if (progress == -1):
+                cur.execute("""DELETE FROM commRepairRequest WHERE userID=:y""",{"y":user})
+                conn.commit()
+                flash("Deletion Successful!")
+                return redirect(url_for('repairReq'))
+            
+            status = ''
+   
+            
+            if (progress == 1):
+                status = 'You may drop-into the shop during working hours'
+            if (progress == 2):
+                status = 'Your Bike is being repaired..'
+            if (progress == 3):
+                status = 'Please come pick up ur bike..'
+        
+
+             #staff side
+            cur.execute("""UPDATE commRepairRequest SET progress=:a WHERE userID=:b""",{"a":progress,"b":user})
+            conn.commit()
+            #comm side
+            cur.execute("""UPDATE commRepairRequest SET status=:z WHERE userID=:y""",{"z":status,"y":user})
+            conn.commit()
+            
+            flash("Update Successful!")
+
+            return redirect(url_for('repairReq'))
+
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Update Unsuccessful!")
+            return redirect(url_for('repairReq'))
+
+
+@app.route("/rentRequests",methods=["GET","POST"])
+#@login_required
+@special_requirement
+def rentReq():
+    if request.method == "GET":
+        try:
+         
+            con = get_db()
+            cur = con.cursor()
+            cur.execute("SELECT * from Exchange")
+            reserveData = cur.fetchall()
+
+            return render_template("rentTool.html", data=reserveData)
+        except Exception as e:
+            print(e, file=sys.stdout)
+    if request.method == "POST":
+        #staff posts this data 
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            status = int(request.form.get('status'))
+            bikeNo = int(request.form.get('bikeNo'))
+ 
+            if (status == -1):
+                cur.execute("""DELETE FROM Exchange WHERE BikeNo=:y""",{"y":bikeNo})
+                conn.commit()
+                cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
+                conn.commit()
+
+                flash("Update Successful!")
+                return redirect(url_for('rentReq'))
+            if (status == 1):
+                try:
+                    cur.execute("""UPDATE Exchange SET status=:z WHERE BikeNo=:y""",{"z":1,"y":bikeNo})
+                    conn.commit()
+                    flash("Update Successful!")
+                    return redirect(url_for('rentReq'))
+                except:
+                    flash("reservation cancelled!")
+                    return redirect(url_for('rentReq'))
+
+
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
+ 
+
+
 #home page
 @app.route("/",methods=["GET","POST"])
 def homePage():
@@ -755,7 +910,7 @@ def rent():
             if(checkAvail):
 
             #print(bikeNo, file=sys.stdout)
-                cur.execute("""INSERT INTO Exchange VALUES (?,?)""",(user,bikeNo))
+                cur.execute("""INSERT INTO Exchange VALUES (?,?,?)""",(user,bikeNo,0))
                 conn.commit()
 
                 cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
@@ -788,7 +943,10 @@ def manageRent():
             cur.execute("""SELECT * FROM GB WHERE BikeNo=:y""",{"y":bike})
             bike_data2 = cur.fetchall()
 
-            return render_template("manageRent.html",data=bike_data2)
+            cur.execute("""SELECT date,notes,status FROM studentRepairRequest WHERE BikeNo=:y""",{"y":bike})
+            data3 = cur.fetchall()
+
+            return render_template("manageRent.html",data=bike_data2, reqData=data3)
         except Exception as e:
             #print(e, file=sys.stdout)
             flash("Error. No bike reservation. First reserve a bike under 'Rent'.")
@@ -801,21 +959,116 @@ def manageRent():
             bikeNo = int(request.form.get('bikeNo'))
             user = session["user"]
             #edit exchange table, add type and set set to unreserve here?
-            cur.execute("""DELETE FROM Exchange WHERE userID=:x""",{"x":user})
-            conn.commit()
 
-            cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
-            conn.commit()
+            cur.execute("""SELECT status FROM Exchange WHERE userID=:x""",{"x":user})
+            status = cur.fetchone()[0]
 
-            flash("Unreseve Successful! You may reserve another bike")
+            if(status!=1):
+                cur.execute("""DELETE FROM Exchange WHERE userID=:x""",{"x":user})
+                conn.commit()
+                cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
+                conn.commit()
+                flash("Unreseve Successful! You may reserve another bike")
+                return redirect(url_for('homePage'))
+            else:
+                flash("Unrent unuccessful! You must return your bike first")
+                return redirect(url_for('manageRent'))
+    
+               
+
+        except Exception as e:
+            #print(e, file=sys.stdout)
+            flash("bike already returned")
             return redirect(url_for('homePage'))
+#end rent
+   
+#begin repair
+@app.route("/stuRepair",methods=["POST"])
+def stuRepairRequest():
+    if request.method == "POST":
+        #students post this data 
+        conn = get_db()
+        cur = conn.cursor()
+        try:
+            date = request.form.get('visitDate')
+            notes = request.form.get('notes')
+            user = session["user"]
+
+            if not date:
+                flash("Error. Enter a date to come in!.")
+                return redirect(url_for('manageRent'))
+            
+            if not notes:
+                notes = 'None'
+
+            cur.execute("""SELECT BikeNo FROM Exchange WHERE userID=:x""",{"x":user})
+            bike = cur.fetchone()[0]
+
+
+            cur.execute("""SELECT status FROM Exchange WHERE userID=:x""",{"x":user})
+            check1 = cur.fetchone()[0]
+
+            if (check1==0):
+                flash("Invalid Request. You are have not been confirmed for this bike")
+                return redirect(url_for('manageRent'))
+
+
+            progress = 0
+
+            cur.execute("""INSERT INTO studentRepairRequest VALUES (?,?,?,?,?,?)""",(user,bike,date,notes,'Sent to Shop',progress))
+            conn.commit()
+            flash("Request Successful! Check Back on the status.")
+            return redirect(url_for('manageRent'))
 
         except Exception as e:
             print(e, file=sys.stdout)
-            return redirect(url_for('logout'))
-#end rent
-   
+            flash("Invalid Request")
+            return redirect(url_for('manageRent'))
 
+
+
+@app.route("/commRepair",methods=["GET","POST"])
+@login_required
+def commRepairRequest():
+    conn = get_db()
+    cur = conn.cursor()
+    if request.method == "GET":
+        user = session["user"]
+        cur.execute("""SELECT date,notes,status FROM commRepairRequest WHERE userID=:y""",{"y":user})
+        data3 = cur.fetchall()
+        return render_template('commRepair.html',data3=data3)
+    if request.method == "POST":
+        #comm. users post this data 
+        try:
+            user = session["user"]
+            model = request.form.get('model')
+            year = request.form.get('year')
+            date = request.form.get('visitDate')
+            notes = request.form.get('notes')
+            
+
+            if not date:
+                flash("Error. Enter a date to come in!.")
+                return redirect(url_for('commRepairRequest'))
+            
+            if not notes:
+                notes = 'None'
+
+            progress = 0
+
+            cur.execute("""INSERT INTO commRepairRequest VALUES (?,?,?,?,?,?,?)""",(user,model,year,date,notes,'Req sent to Shop',progress))
+            conn.commit()
+            flash("Request Successful! Check back later on the status.")
+            return redirect(url_for('commRepairRequest'))
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Invalid Request")
+            return redirect(url_for('commRepair'))
+
+
+
+#end repair
 
 #logout function
 @app.route("/logout")

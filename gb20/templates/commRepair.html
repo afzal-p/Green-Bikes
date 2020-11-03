@@ -18,42 +18,14 @@
 
 <div><br><br>
 
-    <h1>My Bike</h1>
-    <table>
-        <tr>
-            <th>BikeNo</th>
-            <th>Model</th>
-            <th>Year</th>
-            <th>Size</th>
-            <th>Image</th>
-        </tr>
-    {% for item in data %}
-    <tr>
-        
-        <td>{{item[0]}}</td>
-
-        <td>{{item[1]}}</td>
-        <td>{{item[2]}}</td>
-        <td>{{item[3]}}</td>
-        <td><img src=static/bikes/{{item[0]}}.jpeg></td>
-        
-        <form method = "post">
-            <input type="hidden" name="bikeNo" value="{{item[0]}}">
-            <td><input type="submit" value="Unreserve or Unrent"></td>
-        </form>  
-    </tr>
-    {% endfor %}
-    </table>
-
-
-    <h1>Request History for this Bike</h1>
+    <h1>My Request History</h1>
     <table>
         <tr>
             <th>Date</th>
             <th>Notes</th>
             <th>Status</th>
         </tr>
-    {% for item in reqData %}
+    {% for item in data3 %}
     <tr>
         <td>{{item[0]}}</td>
         <td>{{item[1]}}</td>
@@ -64,10 +36,12 @@
 
     
     <h2>Request Service</h2>
-    <form method="post" action="{{ url_for('stuRepairRequest') }}">
+    <form method="post">
         <label for="start">Visit Date:</label>
         <input type="date" id="start" name="visitDate" min="2021-01-01" max="2021-12-31">
-
+        <br><br>
+        <input type="text" name="year" placeholder="enter bike year"><br><br>
+        <input type="text" name="model" placeholder="enter bike model"><br><br>
         <input type="text" name="notes" placeholder="enter description"><br><br>
         
     

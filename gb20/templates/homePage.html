@@ -26,20 +26,26 @@
 
 <div><br><br>
     {% block content %}
+<!--Staff-->
         {% if ( (session['logged'] == True) and ("green47" == session['user']) ) %}
             <a href="/mainTool" target="_blank"><button>user db</button></a>
+            <a href="/repairRequests" target="_blank"><button>repair requests</button></a>
+            <a href="/rentRequests" target="_blank"><button>rent requests</button></a>
             <a href="/logout"><button>Logout</button></a>
+<!--Student-->
         {% elif ( (session['logged'] == True) and ("Student" == session['type']) ) %}
             <a href="/rent" ><button>Rent</button></a>
             <a href="/manageRent" ><button>My Bike</button></a>
             <a href="/logout"><button>Logout</button></a>
+<!--Community-->
         {% elif session['logged'] == True %}
+            <a href="/commRepair"><button>Repair My Bike</button></a>
             <a href="/logout"><button>Logout</button></a>
+<!--Guest-->
         {% else %}
-             <a href="/loginHome"><button>Login</button></a> 
+            <a href="/loginHome"><button>Login</button></a> 
           <a href="/registerHome"><button>Register</button></a> 
-         <!--  <a href="/passwordHelp"><button>Exchange</button></a> -->
-         <!--  <a href="/passwordHelp"><button>Repair</button></a> -->
+   
         {% endif %}
     {% endblock content %}
 </div>

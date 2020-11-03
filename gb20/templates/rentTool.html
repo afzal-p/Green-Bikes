@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <link rel="stylesheet" href="../static/styles.css">
+    <title> Rent Requests </title>
+</head>
+
+
+<body>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+    <p>Hello {{ session['user'] }}</p>
+    <h1>Reservations</h1>
+    <table>
+        <tr>
+            <th>UserID</th>
+            <th>BikeNo</th>
+            <th><em>Rent</em></th>
+
+        </tr>
+    {% for item in data %}
+    {% if item[2] == 0  %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[1]}}</td>
+
+        <form method = "post">
+        <td><input type="radio"  name="status" value="1"></td>
+        <input type="hidden" name="bikeNo" value="{{item[1]}}">
+        <td><input type="submit" value="Confirm"></td>
+        </form> 
+
+        <br>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </table> <br>
+
+
+    <h1> Confirmed Rentals</h1>
+    <table>
+        <tr>
+            <th>UserID</th>
+            <th>BikeNo</th>
+            <th><em>Return</em></th>
+ 
+        </tr>
+    {% for item in data %}
+    {% if item[2] == 1 %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[1]}}</td>
+
+        <form method = "post">
+            <td><input type="radio"  name="status" value="-1"></td>
+            <input type="hidden" name="bikeNo" value="{{item[1]}}">
+            <td><input type="submit" value="Confirm"></td>
+            </form> 
+
+        <br>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </table>
+
+    
+</body>
+
+</html>
