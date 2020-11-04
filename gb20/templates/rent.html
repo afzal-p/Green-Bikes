@@ -33,7 +33,6 @@
             <th>Model</th>
             <th>Year</th>
             <th>Size</th>
-            <th>Available</th>
             <th>Image</th>
         </tr>
     {% for item in data %}
@@ -41,14 +40,12 @@
     <tr>
         
         <td>{{item[0]}}</td>
-
         <td>{{item[1]}}</td>
         <td>{{item[2]}}</td>
         <td>{{item[3]}}</td>
-        <td>{{item[4]}}</td>
         <td><img src=static/bikes/{{item[0]}}.jpeg></td>
         
-        <form method = "post">
+        <form method = "POST" action="{{ url_for('rent') }}">
             <input type="hidden" name="bikeNo" value="{{item[0]}}">
             <td><input type="submit" value="Reserve"></td>
         </form>  

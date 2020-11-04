@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <link rel="stylesheet" href="../static/styles.css">
+    <title> Bike DB</title>
+</head>
+
+
+<body>
+    <h1>Bikes</h1>
+    <table>
+        <tr>
+            <th>BikeNo</th>
+            <th>History</th>
+        </tr>
+    {% for item in data %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[1]}}</td>
+
+        <br>
+    </tr>
+    {% endfor %}
+    </table>
+<h2>Add New Bike</h2>
+    <form method = "post" action="{{ url_for('staffBikeDBaccess') }}" >
+        <td><input placeholder="BikeNo"  name="BikeNo" ></td>
+        <td><input placeholder="model" name="model"></td>
+        <td><input placeholder="year" name="year"></td>
+        <td><input placeholder="size (cm)" name="size"></td>
+   
+        <td><input type="submit" value="Confirm"></td>
+        </form> 
+
+   
+</body>
+
+</html>

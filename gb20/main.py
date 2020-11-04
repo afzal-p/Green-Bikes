@@ -92,6 +92,44 @@ def staffDBaccess():
             return redirect(url_for('logout'))
  
 
+@app.route("/bikeTool",methods=["GET","POST"])
+#@login_required
+@special_requirement
+def staffBikeDBaccess():
+    if request.method == "GET":
+        try:
+            con = get_db()
+            cur = con.cursor()
+            cur.execute("SELECT BikeNo,History from GB")
+            bike_data = cur.fetchall()
+            return render_template("bikeTool.html", data=bike_data)
+        except Exception as e:
+        #print(e, file=sys.stdout)
+            return redirect(url_for('logout'))
+    if request.method == "POST":
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            bikeNo = int(request.form.get('BikeNo'))
+            model = request.form.get('model')
+            year = int(request.form.get('year'))
+            size = int(request.form.get('size'))
+            #available by default
+            available = 1
+            history = ''
+        
+            cur.execute("""INSERT INTO GB VALUES(?,?,?,?,?,?)""",(bikeNo,model,year,size,available,history))
+            conn.commit()
+  
+            flash("Added Successfully!")
+            return redirect(url_for('staffBikeDBaccess'))
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Unsuccessful!")
+            return redirect(url_for('staffBikeDBaccess'))
+ 
+
 @app.route("/repairRequests",methods=["GET","POST"])
 #@login_required
 @special_requirement
@@ -119,7 +157,6 @@ def repairStuReq():
             bikeNo = int(request.form.get('bikeNo'))
             progress = int(request.form.get('progress'))
             repairID = request.form.get('repairID')
-            #notes = request.form.get('notes')
             status = ''
             #ready to service
             if (progress == 1):
@@ -129,12 +166,13 @@ def repairStuReq():
                 status = 'Your Bike is being repaired..'
             #mark as finished
             elif (progress == 3):
-                #TODO: once a repair request is marked as finished, send the notes into History in GB for that bike
-                #cur.execute("""SELECT History from GB where BikeNo=:x""",{"x":bikeNo})
-                #oldNotes = cur.fetchone()[0]
-                #newNotes = str(oldNotes)+notes 
-                #cur.execute("""UPDATE GB SET History=:x WHERE BikeNo=:y""",{"x":bikeNo,"y":newNotes})
-                #conn.commit()
+                #update bike history with notes from finished request, new notes higher that older ones
+                cur.execute("SELECT History from GB WHERE BikeNo=:x",{"x":bikeNo})
+                oldNotes = cur.fetchone()[0]
+                notes = request.form.get('notes') + ' ; ' +'\n'
+                newNotes = notes + oldNotes
+                cur.execute("""UPDATE GB SET History=:x WHERE BikeNo=:y""",{"x":newNotes,"y":bikeNo})
+                conn.commit()
                 status = 'Please come pick up ur bike..'
             if (progress == -1):
                 cur.execute("""DELETE FROM studentRepairRequest WHERE BikeNo=:x AND repairID=:y""",{"x":bikeNo,"y":repairID})
@@ -893,17 +931,16 @@ def rent():
             #students with one reservation cannot reserve again
             cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":user})
             checkUser1 = cur.fetchone()[0]
-  
             if(checkUser1):
                 flash("You have already reserved a bike. Please unreserve in 'My Bike' ")
                 return redirect(url_for('homePage'))
        
-            cur.execute("SELECT * from GB")
+            cur.execute("""SELECT * FROM GB""")
             bike_data = cur.fetchall()
   
-            return render_template("rent.html", data=bike_data,user=user)
+            return render_template("rent.html", data=bike_data)
         except Exception as e:
-        #print(e, file=sys.stdout)
+            #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
     if request.method == "POST":
         #students post this data to rent
@@ -1077,9 +1114,24 @@ def commRepairRequest():
             flash("Invalid Request")
             return redirect(url_for('commRepairRequest'))
 
-
-
 #end repair
+
+
+#TODO: 
+#search function 
+#process posted data 
+#return render_template("rent.html", data=bike_data)
+
+
+
+
+#? TODO:?
+#delete bikes function?
+#delete users function?
+
+#skip / do not implement parts and inventory...??
+
+
 
 #logout function
 @app.route("/logout")
