@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <link rel="stylesheet" href="../static/styles.css">
+    <title> MToool</title>
+</head>
+
+
+<body>
+    <p>Hello {{ user }}</p>
+    <h1>Staff Table</h1>
+    <table>
+        <tr>
+            <th>UserID</th>
+            <th>sID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>E-mail</th>
+            <th>Phone #</th>
+            <th>Year</th>
+        </tr>
+    {% for item in data1 %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[2]}}</td>
+        <td>{{item[3]}}</td>
+        <td>{{item[4]}}</td>
+        <td>{{item[5]}}</td>
+        <td>{{item[6]}}</td>
+        <td>{{item[7]}}</td>
+        <br>
+    </tr>
+    {% endfor %}
+    </table>
+
+    <h1>Student Table</h1>
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>sID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>E-mail</th>
+            <th>Phone #</th>
+            <th>Year</th>
+            <th>School</th>
+            <th>RaffleNo</th>
+            <th>Account Balance</th>
+        </tr>
+    {% for item in data2 %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[2]}}</td>
+        <td>{{item[3]}}</td>
+        <td>{{item[4]}}</td>
+        <td>{{item[5]}}</td>
+        <td>{{item[6]}}</td>
+        <td>{{item[7]}}</td>
+        <td>{{item[8]}}</td>
+        <td>{{item[9]}}</td>
+        <td>{{item[10]}}</td>
+        <br>
+    </tr>
+    {% endfor %}
+    </table>
+
+    <h1>Community Table</h1>
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>E-mail</th>
+            <th>Phone #</th>
+            <th>Account Balance</th>
+        </tr>
+    {% for item in data3 %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[2]}}</td>
+        <td>{{item[3]}}</td>
+        <td>{{item[4]}}</td>
+        <td>{{item[5]}}</td>
+        <td>{{item[6]}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+    
+</body>
+
+</html>

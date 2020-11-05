@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title%} My Bike {% endblock %}
+
+
+
+
+{% block body %} 
+<div>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for msg in messages %}
+            <p>{{msg}}</p>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+</div>
+
+<div><br><br>
+
+    <h1>My Request History</h1>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Notes</th>
+            <th>Status</th>
+        </tr>
+    {% for item in data3 %}
+    <tr>
+        <td>{{item[0]}}</td>
+        <td>{{item[1]}}</td>
+        <td>{{item[2]}}</td>
+    </tr>
+    {% endfor %}
+    </table>
+
+    
+    <h2>Request Service</h2>
+    <form method="post">
+        <label for="start">Visit Date:</label>
+        <input type="date" id="start" name="visitDate" min="2021-01-01" max="2021-12-31">
+        <br><br>
+        <input type="text" name="year" placeholder="enter bike year"><br><br>
+        <input type="text" name="model" placeholder="enter bike model"><br><br>
+        <input type="text" name="notes" placeholder="enter description"><br><br>
+        
+    
+        <input type="submit" value="request repair"> 
+    </form>
+    <br><br>
+<a href="/"><button>Home</button></a>
+
+
+</div>
+{% endblock %}
