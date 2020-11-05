@@ -1,6 +1,6 @@
 # greenbikesdbms
 
-#database path (for user.db) will have to be changed in main.py\
+#database path (for gbdbm.db) will have to be changed in main.py\
 \
 #command to run the app: \
 FLASK_APP=main.py flask run \
