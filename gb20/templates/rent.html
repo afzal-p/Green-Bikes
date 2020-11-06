@@ -17,11 +17,12 @@
 {% endwith %}
 </div>
 <div>
-<form method = "POST">
-    <p>checkout form</p>
-    <input type="text" placeholder="bike #">
-    <input type="submit">
-</form>
+ <p>checkout form</p>
+
+<form method = "POST" action="{{ url_for('rent') }}">
+    <input  placeholder="size (cm)" name="size">
+    <!-- enable on input-->
+    <input type="submit" disabled value="search">
 </div>
 
 <div><br><br>

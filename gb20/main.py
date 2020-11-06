@@ -25,7 +25,8 @@ def after_request(response):
     return response
 
 #link to db
-DATABASE = '/Users/afzal/Downloads/gb20/user.db'
+#figure out relative path
+DATABASE = '/Users/afzal/Downloads/gb20/gbdbm.db'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -115,11 +116,12 @@ def staffBikeDBaccess():
             model = request.form.get('model')
             year = int(request.form.get('year'))
             size = int(request.form.get('size'))
+            fee = int(request.form.get('fee'))
             #available by default
             available = 1
             history = ''
         
-            cur.execute("""INSERT INTO GB VALUES(?,?,?,?,?,?)""",(bikeNo,model,year,size,available,history))
+            cur.execute("""INSERT INTO GB VALUES(?,?,?,?,?,?,?)""",(bikeNo,model,year,size,available,history,fee))
             conn.commit()
   
             flash("Added Successfully!")
@@ -597,7 +599,7 @@ def stuReg():
 
         #check if user wants to participate in raffle and assign rand int 0-255, only added for student users
             if request.form.get("raffleTerms"):
-                raffleNum = random.randint(0,255)
+                raffleNum = random.randint(1,10)
 
             if not word:
                 flash("Please choose a secret word")
@@ -928,51 +930,64 @@ def rent():
             cur = conn.cursor()
             user = session['user']
 
+        
             #students with one reservation cannot reserve again
             cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":user})
             checkUser1 = cur.fetchone()[0]
             if(checkUser1):
                 flash("You have already reserved a bike. Please unreserve in 'My Bike' ")
                 return redirect(url_for('homePage'))
+
+            #check raffle # if not in the range redirect
        
             cur.execute("""SELECT * FROM GB""")
             bike_data = cur.fetchall()
+
   
             return render_template("rent.html", data=bike_data)
         except Exception as e:
-            #print(e, file=sys.stdout)
-            return redirect(url_for('logout'))
+            print(e, file=sys.stdout)
+            #return redirect(url_for('logout'))
+            return redirect(url_for('rent'))
     if request.method == "POST":
         #students post this data to rent
         conn = get_db()
         cur = conn.cursor()
         try:
-            bikeNo = int(request.form.get('bikeNo'))
-            user = session["user"]
+            size = int(request.form.get("size"))
+            cur.execute("""SELECT * FROM GB WHERE size=:x AND available=1""",{"x":size})
+            filteredData = cur.fetchall()
+            return render_template("rent.html", data=filteredData)
+        except:
+            try:
+                
+                bikeNo = int(request.form.get('bikeNo'))
+                user = session["user"]
 
             #check available again incase another user already added
-            cur.execute("""SELECT available FROM GB WHERE BikeNo=:m""",{"m":bikeNo})
-            checkAvail = cur.fetchone()[0]
+                cur.execute("""SELECT available FROM GB WHERE BikeNo=:m""",{"m":bikeNo})
+                checkAvail = cur.fetchone()[0]
 
             #available may have been changed by another user so we recheck here
-            if(checkAvail):
+                if(checkAvail):
 
             #print(bikeNo, file=sys.stdout)
-                cur.execute("""INSERT INTO Exchange VALUES (?,?,?)""",(user,bikeNo,0))
-                conn.commit()
+                    cur.execute("""INSERT INTO Exchange VALUES (?,?,?)""",(user,bikeNo,0))
+                    conn.commit()
 
-                cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
-                conn.commit()
+                    cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
+                    conn.commit()
 
-                flash("Resevation Successful! See My Bike for your reservation.")
-                return redirect(url_for('homePage'))
-            else:
+                    flash("Resevation Successful! See My Bike for your reservation.")
+                    return redirect(url_for('homePage'))
+                else:
+                    flash("Resevation Unuccessful! Bike already reserved")
+                    return redirect(url_for('rent'))
+
+            except Exception as e:
+                print(e, file=sys.stdout)
                 flash("Resevation Unuccessful! Bike already reserved")
                 return redirect(url_for('rent'))
-
-        except Exception as e:
-            flash("Resevation Unuccessful! Bike already reserved")
-            return redirect(url_for('rent'))
         
 
 @app.route("/manageRent",methods=["GET","POST"])
@@ -1117,12 +1132,7 @@ def commRepairRequest():
 #end repair
 
 
-#TODO: 
-#search function 
-#process posted data 
-#return render_template("rent.html", data=bike_data)
-
-
+      
 
 
 #? TODO:?
