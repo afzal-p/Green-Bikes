@@ -2,11 +2,21 @@
 <html lang='en'>
 <head>
     <link rel="stylesheet" href="../static/styles.css">
-    <title> MToool</title>
+    <title> User DB</title>
 </head>
 
 
 <body>
+    <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
+    
     <p>Hello {{ user }}</p>
     <h1>Staff Table</h1>
     <table>
@@ -59,6 +69,11 @@
         <td>{{item[8]}}</td>
         <td>{{item[9]}}</td>
         <td>{{item[10]}}</td>
+        <form method = "post" action="{{ url_for('addStuBal') }}" >
+            <td><input placeholder="Add"  name="balance"></td>
+            <input type="hidden" name="user1" value="{{item[0]}}">
+            <td><input type="submit" value="Update"></td>
+        </form> 
         <br>
     </tr>
     {% endfor %}
@@ -82,6 +97,11 @@
         <td>{{item[4]}}</td>
         <td>{{item[5]}}</td>
         <td>{{item[6]}}</td>
+        <form method = "post" action="{{ url_for('addCommBal') }}" >
+            <td><input placeholder="Add"  name="balance"></td>
+            <input type="hidden" name="user1" value="{{item[0]}}">
+            <td><input type="submit" value="Update"></td>
+        </form> 
     </tr>
     {% endfor %}
     </table>

@@ -7,7 +7,17 @@
 
 
 <body>
-    <h1>Bikes</h1>
+    <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <p>{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    </div>
+    
+    <h1> Current Green Bikes</h1>
     <table>
         <tr>
             <th>BikeNo</th>
@@ -22,17 +32,46 @@
     </tr>
     {% endfor %}
     </table>
-<h2>Add New Bike</h2>
+<h2>Add Bike</h2>
     <form method = "post" action="{{ url_for('staffBikeDBaccess') }}" >
         <td><input placeholder="BikeNo"  name="BikeNo" ></td>
         <td><input placeholder="model" name="model"></td>
         <td><input placeholder="year" name="year"></td>
         <td><input placeholder="size (cm)" name="size"></td>
         <td><input placeholder="lost fee" name="fee"></td>
-        <td><input type="submit" value="Confirm"></td>
+        <td><input type="submit" value="Add Bike"></td>
         </form> 
 
-   
+ <h1> Locks</h1>
+        <table>
+            <tr>
+                <th>LockNo</th>
+                <th>Code</th>
+                <th>Pair</th>
+            </tr>
+        {% for item in data2 %}
+        <tr>
+            <td>{{item[0]}}</td>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
+            <br>
+        </tr>
+        {% endfor %}
+        </table>
+<h2>Add Lock</h2>
+<form method = "post" action="{{ url_for('addLock') }}" >
+            <td><input placeholder="LockNo"  name="LockNo" ></td>
+            <td><input placeholder="Code" name="Code"></td>
+            <td><input placeholder="CurrentBikePair" name="CurrentBikePair"></td>
+            <td><input type="submit" value="Add Lock"></td>
+</form> 
+
+<h2>Set Raffle Slot</h2>
+<form method = "post" action="{{ url_for('setRaffle') }}" >
+            <td><input placeholder="val (1-10) or 10+"  name="maxNum" ></td>
+            <td><input type="submit" value="Set Limit"></td>
+</form> 
+
 </body>
 
 </html>

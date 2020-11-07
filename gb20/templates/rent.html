@@ -6,7 +6,21 @@
 
 
 {% block body %} 
+<script type="text/javascript">
+    function checkInput(searchInput) {
+        var searchButton = document.getElementById("searchButton");
+        //check there is a non-blank input and that it is in b/w 48-62.
+        x = Number(searchInput.value.trim())
 
+        if ((x != "") && (x >= 42 ) && (x <= 62)) {
+            //enable
+            searchButton.disabled = false;}
+        else {
+            //disable
+            searchButton.disabled = true;
+        }
+    };
+</script>
 <div>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -17,12 +31,11 @@
 {% endwith %}
 </div>
 <div>
- <p>checkout form</p>
+ <p>Available Bikes </p>
 
 <form method = "POST" action="{{ url_for('rent') }}">
-    <input  placeholder="size (cm)" name="size">
-    <!-- enable on input-->
-    <input type="submit" disabled value="search">
+    <input id="searchSize"  placeholder="search size (42-62cm)" name="size" onkeyup="checkInput(this)">
+    <input id="searchButton" type="submit"  disabled='disabled' value="search">
 </div>
 
 <div><br><br>
@@ -56,6 +69,7 @@
     </table>
 
 <a href="/"><button>Home</button></a>
+<a href="{{ url_for('rent') }}"><button>Reload All Bikes</button></a>
 
 
 </div>

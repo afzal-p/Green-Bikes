@@ -17,12 +17,12 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 #app.config['ENV'] = 'development'
 #app.config['DEBUG'] = True
 
-@app.after_request
-def after_request(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    return response
+#@app.after_request
+#def after_request(reponse):
+    # response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    # response.headers["Expires"] = 0
+    # response.headers["Pragma"] = "no-cache"
+    # return response
 
 #link to db
 #figure out relative path
@@ -89,8 +89,8 @@ def staffDBaccess():
             community_data = cur.fetchall()
             return render_template("mainTool.html", data1=staff_data,data2=student_data,data3=community_data,user=user)
         except Exception as e:
-        #print(e, file=sys.stdout)
-            return redirect(url_for('logout'))
+            print(e, file=sys.stdout)
+            return redirect(url_for('staffDBaccess'))
  
 
 @app.route("/bikeTool",methods=["GET","POST"])
@@ -101,9 +101,13 @@ def staffBikeDBaccess():
         try:
             con = get_db()
             cur = con.cursor()
-            cur.execute("SELECT BikeNo,History from GB")
+            cur.execute("SELECT BikeNo,History FROM GB")
             bike_data = cur.fetchall()
-            return render_template("bikeTool.html", data=bike_data)
+
+            cur.execute("SELECT LockNo,Code,Pair FROM Locks")
+            lock_data = cur.fetchall()
+
+            return render_template("bikeTool.html", data=bike_data,data2=lock_data)
         except Exception as e:
         #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
@@ -124,14 +128,113 @@ def staffBikeDBaccess():
             cur.execute("""INSERT INTO GB VALUES(?,?,?,?,?,?,?)""",(bikeNo,model,year,size,available,history,fee))
             conn.commit()
   
-            flash("Added Successfully!")
+            flash("GB Added Successfully!")
             return redirect(url_for('staffBikeDBaccess'))
         except Exception as e:
             print(e, file=sys.stdout)
-            flash("Unsuccessful!")
+            flash("Unsuccessful bike add!")
             return redirect(url_for('staffBikeDBaccess'))
  
 
+@app.route("/addLock",methods=["POST"])
+#@login_required
+@special_requirement
+def addLock():
+    if request.method == "POST":
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            LockNo = int(request.form.get('LockNo'))
+            Code = int(request.form.get('Code'))
+            pair = int(request.form.get('CurrentBikePair'))
+            #print(Code, file=sys.stdout)
+
+            cur.execute("""INSERT INTO Locks VALUES(?,?,?)""",(LockNo,Code,pair))
+            conn.commit()
+  
+            flash("Lock Added Successfully!")
+            return redirect(url_for('staffBikeDBaccess'))
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Unsuccessful lock add!")
+            return redirect(url_for('staffBikeDBaccess'))
+
+@app.route("/setRaffle",methods=["POST"])
+#@login_required
+@special_requirement
+def setRaffle():
+    if request.method == "POST":
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            maxRaffleNo = int(request.form.get('maxNum'))
+
+            if(maxRaffleNo > 10 or maxRaffleNo < 1):
+                    flash("Unsuccessful limit set add!")
+                    return redirect(url_for('staffBikeDBaccess'))
+            
+
+            cur.execute("""UPDATE RaffleLimit SET MaxRaffleNo=:x""",{'x':maxRaffleNo})
+            conn.commit()
+  
+            flash("Limit Set Successfully!")
+            return redirect(url_for('staffBikeDBaccess'))
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Unsuccessful limit set add!")
+            return redirect(url_for('staffBikeDBaccess'))
+ 
+
+
+#begin add balance
+@app.route("/addStuBal",methods=["POST"])
+@login_required
+#@special_requirement
+def addStuBal():
+    if request.method == "POST":
+        try:
+            con = get_db()
+            cur = con.cursor()
+
+            bal = int(request.form.get('balance'))
+            user = request.form.get('user1')
+    
+            cur.execute("""UPDATE Students SET bal=:x WHERE userID=:y""",{'x':bal,'y':user})
+            con.commit()
+            flash("Balance Updated")
+            return redirect(url_for('staffDBaccess'))
+        except Exception as e:
+            #print(e, file=sys.stdout)
+            flash("Balance Update Unsuccessful")
+            return redirect(url_for('staffDBaccess'))
+ 
+
+@app.route("/addCommBal",methods=["POST"])
+@login_required
+#@special_requirement
+def addCommBal():
+    if request.method == "POST":
+        try:
+            con = get_db()
+            cur = con.cursor()
+
+            bal = int(request.form.get('balance'))
+            user = request.form.get('user1')
+    
+            cur.execute("""UPDATE Community SET bal=:x WHERE userID=:y""",{'x':bal,'y':user})
+            con.commit()
+            flash("Balance Updated")
+            return redirect(url_for('staffDBaccess'))
+        except Exception as e:
+            #print(e, file=sys.stdout)
+            flash("Balance Update Unsuccessful")
+            return redirect(url_for('staffDBaccess'))
+
+#end add balance
+
+#begin repair and rent requests
 @app.route("/repairRequests",methods=["GET","POST"])
 #@login_required
 @special_requirement
@@ -292,9 +395,11 @@ def rentReq():
 
 
         except Exception as e:
-            print(e, file=sys.stdout)
-            return redirect(url_for('logout'))
- 
+            flash("Update unsuccessful!")
+            #print(e, file=sys.stdout)
+            return redirect(url_for('rentReq'))
+
+#end requests
 
 
 #home page
@@ -672,7 +777,7 @@ def stuReg():
                     cur.execute("""INSERT INTO Students VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele,year,school,raffleNum, balance, hashWord))
                     conn.commit()
                     flash("Registration Successful for Student User! Please login.")
-                    return redirect(url_for('stuLogin'))
+                    return redirect(url_for('homePage'))
                 except:
                     return render_template("stuReg.html")
         except Exception as e:
@@ -938,25 +1043,43 @@ def rent():
                 flash("You have already reserved a bike. Please unreserve in 'My Bike' ")
                 return redirect(url_for('homePage'))
 
-            #check raffle # if not in the range redirect
-       
-            cur.execute("""SELECT * FROM GB""")
+            cur.execute("""SELECT raffleNo FROM Students WHERE userID=:un""",{"un":user})
+            stuRaffleNo = cur.fetchone()[0]
+
+            cur.execute("""SELECT MaxRaffleNo FROM RaffleLimit""")
+            maxRaffleNo = cur.fetchone()[0]
+
+            #check student raffle # against max
+            if(stuRaffleNo > maxRaffleNo):
+                flash("Invalid raffle number, try again later")
+                return redirect(url_for('homePage'))
+
+
+            cur.execute("""SELECT * FROM GB WHERE available=1""")
             bike_data = cur.fetchall()
 
   
             return render_template("rent.html", data=bike_data)
         except Exception as e:
             print(e, file=sys.stdout)
-            #return redirect(url_for('logout'))
-            return redirect(url_for('rent'))
+            flash("Error")
+            return redirect(url_for('homePage'))
     if request.method == "POST":
         #students post this data to rent
         conn = get_db()
         cur = conn.cursor()
         try:
             size = int(request.form.get("size"))
+      
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM GB WHERE size=:x)""",{"x":size})
+            checkSize = cur.fetchone()[0]
+            if not checkSize:
+                flash("no matches returned from search")
+                return redirect(url_for('rent'))
+
             cur.execute("""SELECT * FROM GB WHERE size=:x AND available=1""",{"x":size})
             filteredData = cur.fetchall()
+
             return render_template("rent.html", data=filteredData)
         except:
             try:
@@ -1089,7 +1212,6 @@ def stuRepairRequest():
             return redirect(url_for('manageRent'))
 
 
-
 @app.route("/commRepair",methods=["GET","POST"])
 @login_required
 def commRepairRequest():
@@ -1132,25 +1254,18 @@ def commRepairRequest():
 #end repair
 
 
-      
-
-
-#? TODO:?
-#delete bikes function?
-#delete users function?
-
-#skip / do not implement parts and inventory...??
-
-
-
 #logout function
 @app.route("/logout")
 @login_required
 def logout():
     session['logged'] = False 
     session.clear()
+    flash("You have been logged out!")
     return redirect(url_for('homePage'))
 
- 
+      
+#?TODO: later implementation: delete bikes,locks, users. 
+
+
 
 
