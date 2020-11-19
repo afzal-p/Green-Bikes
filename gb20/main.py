@@ -1027,6 +1027,7 @@ def commHelp():
 @app.route("/rent",methods=["GET","POST"])
 @login_required
 @special_requirement2
+#refresh page on browser back button
 def rent():
     if request.method == "GET":
         #only students see this data
@@ -1097,7 +1098,7 @@ def rent():
             #print(bikeNo, file=sys.stdout)
                     cur.execute("""INSERT INTO Exchange VALUES (?,?,?)""",(user,bikeNo,0))
                     conn.commit()
-
+                    
                     cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
                     conn.commit()
 
@@ -1264,7 +1265,7 @@ def logout():
     return redirect(url_for('homePage'))
 
       
-#?TODO: later implementation: delete bikes,locks, users. 
+
 
 
 
