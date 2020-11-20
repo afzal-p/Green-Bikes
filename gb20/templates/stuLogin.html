@@ -3,8 +3,29 @@
 {% block title%} Login {% endblock %}
 
 {% block body %} 
-
+<script type="text/javascript">
+    window.addEventListener( "pageshow", function ( event ) {
+            var historyTraversal = event.persisted || 
+                                   ( typeof window.performance != "undefined" && 
+                                        window.performance.navigation.type === 2 );
+            if ( historyTraversal ) {
+              // Handle page restore.
+              window.location.reload();
+            }
+          });
+    </script>
 <div>
+    <script type="text/javascript">
+        window.addEventListener( "pageshow", function ( event ) {
+                var historyTraversal = event.persisted || 
+                                       ( typeof window.performance != "undefined" && 
+                                            window.performance.navigation.type === 2 );
+                if ( historyTraversal ) {
+                  // Handle page restore.
+                  window.location.reload();
+                }
+              });
+        </script>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         {% for msg in messages %}

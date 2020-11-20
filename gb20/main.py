@@ -1268,5 +1268,6 @@ def logout():
 
 
 
-
+ #?TODO: later implementation: delete/update bikes,delete/update locks, delete users?
+ #reload pages on browser back button
 
