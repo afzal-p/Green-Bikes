@@ -70,7 +70,7 @@ window.addEventListener( "pageshow", function ( event ) {
         <td>{{item[1]}}</td>
         <td>{{item[2]}}</td>
         <td>{{item[3]}}</td>
-        <td><img src=static/bikes/{{item[0]}}.jpeg></td>
+        <td><img style="width:175px; height:150px;" src=static/bikes/{{item[0]}}.jpg></td>
         
         <form method = "POST" action="{{ url_for('rent') }}">
             <input type="hidden" name="bikeNo" value="{{item[0]}}">
@@ -81,8 +81,7 @@ window.addEventListener( "pageshow", function ( event ) {
     {% endfor %}
     </table>
 
-<a href="/"><button>Home</button></a>
-<a href="{{ url_for('rent') }}"><button>Reload All Bikes</button></a>
+<a href="{{ url_for('homePage') }}"><button>Home</button></a>
 
 
 </div>

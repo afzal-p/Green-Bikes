@@ -16,6 +16,7 @@
               window.location.reload();
             }
           });
+
     </script>
 <div>
     {% with messages = get_flashed_messages() %}
@@ -27,7 +28,7 @@
 {% endwith %}
 </div>
 
-<div><br><br>
+<div>
 
     <h1>My Bike</h1>
     <table>
@@ -49,17 +50,19 @@
         <td>{{item[2]}}</td>
         <td>{{item[3]}}</td>
         <td>${{item[6]}}</td>
-        <td><img src=static/bikes/{{item[0]}}.jpeg></td>
+        <td><img style="width:175px; height:150px;" src=static/bikes/{{item[0]}}.jpg></td>
     
         <form method = "post">
             <input type="hidden" name="bikeNo" value="{{item[0]}}">
-            <td><input type="submit" value="Unreserve or Unrent"></td>
+            {% if check!= 1  %}
+            <td><input type="submit"  value="Unreserve"></td>
+            {% endif %}
         </form>  
     </tr>
     {% endfor %}
     </table>
 
-
+    <br><br><br><br>
     <h1>Request History for this Bike</h1>
     <table>
         <tr>
@@ -76,11 +79,11 @@
     {% endfor %}
     </table>
 
-    
+    <br><br><br><br>
     <h2>Request Service</h2>
     <form method="post" action="{{ url_for('stuRepairRequest') }}">
-        <label for="start">Visit Date:</label>
-        <input type="date" id="start" name="visitDate" min="2021-01-01" max="2021-12-31">
+        <label for="start" >Visit Date:</label>
+        <input type="date" id="start" name="visitDate" placeholder="MM/DD/21" min="2021-01-01" max="2021-12-31">
 
         <input type="text" name="notes" placeholder="enter description"><br><br>
         

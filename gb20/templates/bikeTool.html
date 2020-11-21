@@ -6,7 +6,11 @@
 </head>
 
 
+
 <body>
+
+
+
     <script type="text/javascript">
         window.addEventListener( "pageshow", function ( event ) {
                 var historyTraversal = event.persisted || 
@@ -18,7 +22,7 @@
                 }
               });
         </script>
-    <div>
+    <p>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for msg in messages %}
@@ -26,10 +30,10 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    </div>
-    
-    <h1> Current Green Bikes</h1>
-    <table>
+    </p>
+
+    <table style="position: left;margin-top: -500px;">
+        <h1> Current Green Bikes</h1>
         <tr>
             <th>BikeNo</th>
             <th>History</th>

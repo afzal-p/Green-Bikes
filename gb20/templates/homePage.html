@@ -39,15 +39,20 @@
         </script>
 <!--Staff-->
         {% if ( (session['logged'] == True) and ("green47" == session['user']) ) %}
-            <a href="/bikeTool" target="_blank"><button>bike db</button></a>
-            <a href="/mainTool" target="_blank"><button>user db</button></a>
+            <a href="/bikeTool" target="_blank"><button>bikes</button></a>
+            <a href="/mainTool" target="_blank"><button>users</button></a>
             <a href="/repairRequests" target="_blank"><button>repairs</button></a>
             <a href="/rentRequests" target="_blank"><button>rentals</button></a><br><br>
             <a href="/logout"><button>Logout</button></a>
 <!--Student-->
         {% elif ( (session['logged'] == True) and ("Student" == session['type']) ) %}
-            <a href="/rent" ><button>Rent</button></a>
+
+            {% if check == 1  %}
             <a href="/manageRent" ><button>My Bike</button></a><br><br>
+         
+            {% elif check != 1 %}
+            <a href="/rent" ><button>Rent</button></a>
+            {% endif %}
             <a href="/logout"><button>Logout</button></a>
 <!--Community-->
         {% elif session['logged'] == True %}

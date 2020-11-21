@@ -124,6 +124,18 @@ def staffBikeDBaccess():
             #available by default
             available = 1
             history = ''
+
+            if not (1990 <= year <= 2020):
+                flash("error: check year!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+            if not (42 <= size <= 62):
+                flash("error: check size!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+            if(fee<0):
+                flash("error: negative fee!")
+                return redirect(url_for('staffBikeDBaccess'))
         
             cur.execute("""INSERT INTO GB VALUES(?,?,?,?,?,?,?)""",(bikeNo,model,year,size,available,history,fee))
             conn.commit()
@@ -222,6 +234,10 @@ def addCommBal():
 
             bal = int(request.form.get('balance'))
             user = request.form.get('user1')
+
+            if(bal<0):
+                flash("Error: Negative Balance")
+                return redirect(url_for('staffDBaccess'))
     
             cur.execute("""UPDATE Community SET bal=:x WHERE userID=:y""",{'x':bal,'y':user})
             con.commit()
@@ -406,7 +422,15 @@ def rentReq():
 @app.route("/",methods=["GET","POST"])
 def homePage():
     if request.method == "GET":
-        return render_template("homePage.html", user="Guest")
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":session['user']})
+            checkRentAccess = cur.fetchone()[0]
+            return render_template("homePage.html", user=session['user'],check=checkRentAccess)
+        except Exception as e:
+            #print(e, file=sys.stdout)
+            return render_template("homePage.html", user="Guest")
 
 #begin login 
 @app.route("/loginHome", methods=["GET"])
@@ -446,7 +470,7 @@ def stafflogin():
             if(check_password_hash(checkHash1, pw)):
                 session['logged'] = True 
                 session['user'] = un
-                return render_template("homePage.html")
+                return redirect(url_for('homePage'))
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("staffLogin.html")
@@ -486,7 +510,7 @@ def stulogin():
                 session['logged'] = True 
                 session['user'] = un
                 session['type'] = 'Student'
-                return render_template("homePage.html")
+                return redirect(url_for('homePage'))
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("stuLogin.html")
@@ -525,7 +549,7 @@ def commLogin():
             if(check_password_hash(checkHash1, pw)):
                 session['logged'] = True 
                 session['user'] = un
-                return render_template("homePage.html",)
+                return redirect(url_for('homePage'))
             else:
                 flash("invalid credentials. Please try again.")
                 return render_template("commLogin.html")
@@ -1109,9 +1133,8 @@ def rent():
                     return redirect(url_for('rent'))
 
             except Exception as e:
-                print(e, file=sys.stdout)
-                flash("Resevation Unuccessful! Bike already reserved")
-                return redirect(url_for('rent'))
+                #print(e, file=sys.stdout)
+                return redirect(url_for('homePage'))
         
 
 @app.route("/manageRent",methods=["GET","POST"])
@@ -1133,7 +1156,10 @@ def manageRent():
             cur.execute("""SELECT date,notes,status FROM studentRepairRequest WHERE BikeNo=:y""",{"y":bike})
             data3 = cur.fetchall()
 
-            return render_template("manageRent.html",data=bike_data2, reqData=data3)
+            cur.execute("""SELECT status FROM Exchange WHERE BikeNo=:y""",{"y":bike})
+            condition1 = cur.fetchone()[0]
+
+            return render_template("manageRent.html",data=bike_data2, reqData=data3,check=condition1)
         except Exception as e:
             #print(e, file=sys.stdout)
             flash("Error. No bike reservation. First reserve a bike under 'Rent'.")
@@ -1145,7 +1171,6 @@ def manageRent():
         try:
             bikeNo = int(request.form.get('bikeNo'))
             user = session["user"]
-            #edit exchange table, add type and set set to unreserve here?
 
             cur.execute("""SELECT status FROM Exchange WHERE userID=:x""",{"x":user})
             status = cur.fetchone()[0]
@@ -1155,10 +1180,10 @@ def manageRent():
                 conn.commit()
                 cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
                 conn.commit()
-                flash("Unreseve Successful! You may reserve another bike")
+                flash("Unreserve Successful! You may reserve another bike")
                 return redirect(url_for('homePage'))
             else:
-                flash("Unrent unuccessful! You must return your bike first")
+                flash("Unreserve unuccessful! You must first return your bike first")
                 return redirect(url_for('manageRent'))
     
                
@@ -1182,11 +1207,12 @@ def stuRepairRequest():
             user = session["user"]
 
             if not date:
-                flash("Error. Enter a date to come in!.")
+                flash("Error. Enter a date to come in!")
                 return redirect(url_for('manageRent'))
             
             if not notes:
-                notes = 'None'
+                flash("Error. Enter a description!")
+                return redirect(url_for('manageRent'))
 
             cur.execute("""SELECT BikeNo FROM Exchange WHERE userID=:x""",{"x":user})
             bike = cur.fetchone()[0]
@@ -1208,7 +1234,7 @@ def stuRepairRequest():
             return redirect(url_for('manageRent'))
 
         except Exception as e:
-            print(e, file=sys.stdout)
+            #print(e, file=sys.stdout)
             flash("Invalid Request")
             return redirect(url_for('manageRent'))
 
@@ -1238,7 +1264,8 @@ def commRepairRequest():
                 return redirect(url_for('commRepairRequest'))
             
             if not notes:
-                notes = 'None'
+                flash("Error. Enter description!")
+                return redirect(url_for('commRepairRequest'))
 
             progress = 0
 
