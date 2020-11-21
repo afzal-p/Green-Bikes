@@ -26,7 +26,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 #link to db
 #figure out relative path
-DATABASE = '/Users/afzal/Downloads/gb20/gbdbm.db'
+DATABASE = '/Users/afzal/Downloads/gb20/gb.db'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -148,28 +148,117 @@ def staffBikeDBaccess():
             return redirect(url_for('staffBikeDBaccess'))
  
 
+
+@app.route("/editLock",methods=["POST"])
+#@login_required
+@special_requirement
+def editLock():
+    if request.method == "POST":
+        try:
+            conn = get_db()
+            cur = conn.cursor()
+
+            lockNo = int(request.form.get('lock'))
+    
+            #delete lock
+            if(request.form.get('deleteLock')==str(lockNo)):
+                cur.execute("""DELETE FROM Locks where LockNo=:x """,{"x":lockNo})
+                conn.commit()
+                flash("Lock deletion successful!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+            #update both pair and combo
+            elif(request.form.get('pair') and request.form.get('combo')):
+                newPair = int(request.form.get('pair'))
+                cur.execute("""SELECT EXISTS(SELECT 1 FROM GB WHERE BikeNo=:x)""",{"x":newPair})
+                checkBikeExists = cur.fetchone()[0]
+
+                if not checkBikeExists:
+                    flash("No existing GB to pair with Lock!")
+                    return redirect(url_for('staffBikeDBaccess'))
+
+                if(len(request.form.get('combo'))!=4):
+                    flash("Unsuccessful lock update! Check code length")
+                    return redirect(url_for('staffBikeDBaccess'))
+
+                try:
+                    newCode = int(request.form.get('combo'))
+                except:
+                    flash("Unsuccessful lock update! Check code type")
+                    return redirect(url_for('staffBikeDBaccess'))
+
+
+                cur.execute("""UPDATE Locks SET Code=:x, Pair=:y WHERE LockNo=:z""",{"x":newCode,"y":newPair,"z":lockNo})
+                conn.commit()
+                flash("Lock code and pair update successful!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+            # #update pair
+            elif(request.form.get('pair')):
+                newPair = int(request.form.get('pair'))
+                cur.execute("""SELECT EXISTS(SELECT 1 FROM GB WHERE BikeNo=:x)""",{"x":newPair})
+                checkBikeExists = cur.fetchone()[0]
+
+                if not checkBikeExists:
+                    flash("No existing GB to pair with Lock!")
+                    return redirect(url_for('staffBikeDBaccess'))
+
+                newPair = int(request.form.get('pair'))
+                cur.execute("""UPDATE Locks SET Pair=:x WHERE LockNo=:y""",{"x":newPair,"y":lockNo})
+                conn.commit()
+                flash("Lock pair update successful!")
+                return redirect(url_for('staffBikeDBaccess'))
+            
+            #update combo
+            elif(request.form.get('combo')):
+                if(len(request.form.get('combo'))!=4):
+                    flash("Unsuccessful lock update! Check code length")
+                    return redirect(url_for('staffBikeDBaccess'))
+                try:
+                    newCode = int(request.form.get('combo'))
+                except:
+                    flash("Unsuccessful lock update! Check code type")
+                    return redirect(url_for('staffBikeDBaccess'))
+
+                cur.execute("""UPDATE Locks SET Code=:x WHERE LockNo=:y""",{"x":newCode,"y":lockNo})
+                conn.commit()
+                flash("Lock code update successful!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+            else:
+                flash("Unsuccessful lock update!")
+                return redirect(url_for('staffBikeDBaccess'))
+
+        except Exception as e:
+            print(e, file=sys.stdout)
+            flash("Unsuccessful lock update! Check for missing fields and types")
+            return redirect(url_for('staffBikeDBaccess'))
+ 
 @app.route("/addLock",methods=["POST"])
 #@login_required
 @special_requirement
 def addLock():
     if request.method == "POST":
         try:
+            
+            if(len(request.form.get('Code'))!=4):
+                flash("Unsuccessful lock update! Check code length")
+                return redirect(url_for('staffBikeDBaccess'))
+
             conn = get_db()
             cur = conn.cursor()
 
             LockNo = int(request.form.get('LockNo'))
             Code = int(request.form.get('Code'))
-            pair = int(request.form.get('CurrentBikePair'))
-            #print(Code, file=sys.stdout)
 
-            cur.execute("""INSERT INTO Locks VALUES(?,?,?)""",(LockNo,Code,pair))
+            #pair is -1 for unborrowed locks
+            cur.execute("""INSERT INTO Locks VALUES(?,?,-1)""",(LockNo,Code))
             conn.commit()
   
             flash("Lock Added Successfully!")
             return redirect(url_for('staffBikeDBaccess'))
         except Exception as e:
-            print(e, file=sys.stdout)
-            flash("Unsuccessful lock add!")
+            flash("Unsuccessful lock add! Check Missing Fields, Types, and Combo length")
             return redirect(url_for('staffBikeDBaccess'))
 
 @app.route("/setRaffle",methods=["POST"])
@@ -183,7 +272,7 @@ def setRaffle():
 
             maxRaffleNo = int(request.form.get('maxNum'))
 
-            if(maxRaffleNo > 10 or maxRaffleNo < 1):
+            if(maxRaffleNo > 100 or maxRaffleNo < 1):
                     flash("Unsuccessful limit set add!")
                     return redirect(url_for('staffBikeDBaccess'))
             
@@ -199,7 +288,6 @@ def setRaffle():
             return redirect(url_for('staffBikeDBaccess'))
  
 
-
 #begin add balance
 @app.route("/addStuBal",methods=["POST"])
 @login_required
@@ -212,6 +300,10 @@ def addStuBal():
 
             bal = int(request.form.get('balance'))
             user = request.form.get('user1')
+
+            if(bal<0):
+                flash("Error: Negative Balance")
+                return redirect(url_for('staffDBaccess'))
     
             cur.execute("""UPDATE Students SET bal=:x WHERE userID=:y""",{'x':bal,'y':user})
             con.commit()
@@ -294,7 +386,7 @@ def repairStuReq():
                 newNotes = notes + oldNotes
                 cur.execute("""UPDATE GB SET History=:x WHERE BikeNo=:y""",{"x":newNotes,"y":bikeNo})
                 conn.commit()
-                status = 'Please come pick up ur bike..'
+                status = 'Finished'
             if (progress == -1):
                 cur.execute("""DELETE FROM studentRepairRequest WHERE BikeNo=:x AND repairID=:y""",{"x":bikeNo,"y":repairID})
                 conn.commit()
@@ -346,7 +438,7 @@ def repairCommReq():
                 status = 'Your Bike is being repaired..'
             if (progress == 3):
 
-                status = 'Please come pick up ur bike..'
+                status = 'Finished'
         
 
              #staff side
@@ -376,7 +468,7 @@ def rentReq():
          
             con = get_db()
             cur = con.cursor()
-            cur.execute("SELECT * from Exchange")
+            cur.execute("SELECT * from Reserve")
             reserveData = cur.fetchall()
 
             return render_template("rentTool.html", data=reserveData)
@@ -391,7 +483,7 @@ def rentReq():
             bikeNo = int(request.form.get('bikeNo'))
  
             if (status == -1):
-                cur.execute("""DELETE FROM Exchange WHERE BikeNo=:y""",{"y":bikeNo})
+                cur.execute("""DELETE FROM Reserve WHERE BikeNo=:y""",{"y":bikeNo})
                 conn.commit()
                 cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
                 conn.commit()
@@ -400,7 +492,7 @@ def rentReq():
                 return redirect(url_for('rentReq'))
             if (status == 1):
                 try:
-                    cur.execute("""UPDATE Exchange SET status=:z WHERE BikeNo=:y""",{"z":1,"y":bikeNo})
+                    cur.execute("""UPDATE Reserve SET status=:z WHERE BikeNo=:y""",{"z":1,"y":bikeNo})
                     conn.commit()
                     flash("Update Successful!")
                     return redirect(url_for('rentReq'))
@@ -425,7 +517,7 @@ def homePage():
         try:
             conn = get_db()
             cur = conn.cursor()
-            cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":session['user']})
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM Reserve WHERE userID=:un)""",{"un":session['user']})
             checkRentAccess = cur.fetchone()[0]
             return render_template("homePage.html", user=session['user'],check=checkRentAccess)
         except Exception as e:
@@ -1051,7 +1143,6 @@ def commHelp():
 @app.route("/rent",methods=["GET","POST"])
 @login_required
 @special_requirement2
-#refresh page on browser back button
 def rent():
     if request.method == "GET":
         #only students see this data
@@ -1062,7 +1153,7 @@ def rent():
 
         
             #students with one reservation cannot reserve again
-            cur.execute("""SELECT EXISTS(SELECT 1 FROM Exchange WHERE userID=:un)""",{"un":user})
+            cur.execute("""SELECT EXISTS(SELECT 1 FROM Reserve WHERE userID=:un)""",{"un":user})
             checkUser1 = cur.fetchone()[0]
             if(checkUser1):
                 flash("You have already reserved a bike. Please unreserve in 'My Bike' ")
@@ -1083,7 +1174,6 @@ def rent():
             cur.execute("""SELECT * FROM GB WHERE available=1""")
             bike_data = cur.fetchall()
 
-  
             return render_template("rent.html", data=bike_data)
         except Exception as e:
             print(e, file=sys.stdout)
@@ -1100,7 +1190,10 @@ def rent():
             checkSize = cur.fetchone()[0]
             if not checkSize:
                 flash("no matches returned from search")
-                return redirect(url_for('rent'))
+                cur.execute("""SELECT * FROM GB WHERE available=1""")
+                bike_data = cur.fetchall()
+                return render_template("rent.html", data=bike_data)
+            
 
             cur.execute("""SELECT * FROM GB WHERE size=:x AND available=1""",{"x":size})
             filteredData = cur.fetchall()
@@ -1120,7 +1213,7 @@ def rent():
                 if(checkAvail):
 
             #print(bikeNo, file=sys.stdout)
-                    cur.execute("""INSERT INTO Exchange VALUES (?,?,?)""",(user,bikeNo,0))
+                    cur.execute("""INSERT INTO Reserve VALUES (?,?,?)""",(user,bikeNo,0))
                     conn.commit()
                     
                     cur.execute("""UPDATE GB SET available=:x WHERE BikeNo=:y""",{"x":False,"y":bikeNo})
@@ -1135,7 +1228,8 @@ def rent():
             except Exception as e:
                 #print(e, file=sys.stdout)
                 return redirect(url_for('homePage'))
-        
+
+
 
 @app.route("/manageRent",methods=["GET","POST"])
 @login_required
@@ -1147,7 +1241,7 @@ def manageRent():
             conn = get_db()
             cur = conn.cursor()
 
-            cur.execute("""SELECT BikeNo FROM Exchange WHERE userID=:x""",{"x":user})
+            cur.execute("""SELECT BikeNo FROM Reserve WHERE userID=:x""",{"x":user})
             bike = cur.fetchone()[0]
             
             cur.execute("""SELECT * FROM GB WHERE BikeNo=:y""",{"y":bike})
@@ -1156,7 +1250,7 @@ def manageRent():
             cur.execute("""SELECT date,notes,status FROM studentRepairRequest WHERE BikeNo=:y""",{"y":bike})
             data3 = cur.fetchall()
 
-            cur.execute("""SELECT status FROM Exchange WHERE BikeNo=:y""",{"y":bike})
+            cur.execute("""SELECT status FROM Reserve WHERE BikeNo=:y""",{"y":bike})
             condition1 = cur.fetchone()[0]
 
             return render_template("manageRent.html",data=bike_data2, reqData=data3,check=condition1)
@@ -1172,11 +1266,11 @@ def manageRent():
             bikeNo = int(request.form.get('bikeNo'))
             user = session["user"]
 
-            cur.execute("""SELECT status FROM Exchange WHERE userID=:x""",{"x":user})
+            cur.execute("""SELECT status FROM Reserve WHERE userID=:x""",{"x":user})
             status = cur.fetchone()[0]
 
             if(status!=1):
-                cur.execute("""DELETE FROM Exchange WHERE userID=:x""",{"x":user})
+                cur.execute("""DELETE FROM Reserve WHERE userID=:x""",{"x":user})
                 conn.commit()
                 cur.execute("""UPDATE GB SET available=:z WHERE BikeNo=:y""",{"z":True,"y":bikeNo})
                 conn.commit()
@@ -1214,11 +1308,11 @@ def stuRepairRequest():
                 flash("Error. Enter a description!")
                 return redirect(url_for('manageRent'))
 
-            cur.execute("""SELECT BikeNo FROM Exchange WHERE userID=:x""",{"x":user})
+            cur.execute("""SELECT BikeNo FROM Reserve WHERE userID=:x""",{"x":user})
             bike = cur.fetchone()[0]
 
 
-            cur.execute("""SELECT status FROM Exchange WHERE userID=:x""",{"x":user})
+            cur.execute("""SELECT status FROM Reserve WHERE userID=:x""",{"x":user})
             check1 = cur.fetchone()[0]
 
             if (check1==0):
@@ -1298,3 +1392,6 @@ def logout():
  #?TODO: later implementation: delete/update bikes,delete/update locks, delete users?
  #reload pages on browser back button
 
+
+
+#?TODO: later implementation: delete/update bikes & users?

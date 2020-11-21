@@ -5,7 +5,15 @@
 
 
 {% block body %} 
-
+<p><strong>Message from Staff:</strong> <br><br>
+    On this page you may reserve a bike. <br><br>
+    Use the search bar to filter by frame size (cm)<br><br>
+    After reserving a bike, you will be redirected to the home page. <br><br>
+    If you click "reserve" on a bike here, you will not be able to access this page again.
+    Once a bike is reserved, other students cannot reserve that bike.<br> <br>
+    If you change your mind you may go to "My Bike", click "unreserve", and come back here to reserve a different bike. <br><br>
+    Finally, after you come to the shop to pick up your bike you may ask to borrow a lock and and you will be able to send repair requests under "My Bike". <br>
+    </p>
 <script type="text/javascript">
 window.addEventListener( "pageshow", function ( event ) {
         var historyTraversal = event.persisted || 
@@ -44,7 +52,7 @@ window.addEventListener( "pageshow", function ( event ) {
 {% endwith %}
 </div>
 <div>
- <p>Available Bikes </p>
+ <h2><strong> All Available Bikes</strong> </h2>
 
 <form method = "POST" action="{{ url_for('rent') }}">
     <input id="searchSize"  placeholder="search size (42-62cm)" name="size" onkeyup="checkInput(this)">

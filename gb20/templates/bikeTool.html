@@ -56,19 +56,31 @@
         <td><input placeholder="lost fee" name="fee"></td>
         <td><input type="submit" value="Add Bike"></td>
         </form> 
-
+<br>
  <h1> Locks</h1>
         <table>
             <tr>
                 <th>LockNo</th>
                 <th>Code</th>
                 <th>Pair</th>
+                <br>
+                <th>DELETE</th>
+                <th>newPair</th>
+                <th>newCode</th>
+                
             </tr>
         {% for item in data2 %}
         <tr>
             <td>{{item[0]}}</td>
             <td>{{item[1]}}</td>
             <td>{{item[2]}}</td>
+            <form method = "POST" action="{{ url_for('editLock') }}" >
+                <input type="hidden" name="lock" value="{{item[0]}}">
+                <td><input type="checkbox"  name="deleteLock" value="{{item[0]}}"></td>
+                <td><input placeholder="New GB Pair"  name="pair"></td>
+                <td><input placeholder="New Combo"  name="combo"></td>
+                <td><input type="submit" value="Update"></td>
+            </form> 
             <br>
         </tr>
         {% endfor %}
@@ -77,10 +89,10 @@
 <form method = "post" action="{{ url_for('addLock') }}" >
             <td><input placeholder="LockNo"  name="LockNo" ></td>
             <td><input placeholder="Code" name="Code"></td>
-            <td><input placeholder="CurrentBikePair" name="CurrentBikePair"></td>
             <td><input type="submit" value="Add Lock"></td>
 </form> 
-
+<br>
+<h1>Raffle</h1>
 <h2>Set Raffle Slot</h2>
 <form method = "post" action="{{ url_for('setRaffle') }}" >
             <td><input placeholder="val (1-10) or 10+"  name="maxNum" ></td>
