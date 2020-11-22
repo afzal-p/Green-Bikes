@@ -107,7 +107,10 @@ def staffBikeDBaccess():
             cur.execute("SELECT LockNo,Code,Pair FROM Locks")
             lock_data = cur.fetchall()
 
-            return render_template("bikeTool.html", data=bike_data,data2=lock_data)
+            cur.execute("SELECT * FROM RaffleLimit")
+            raffleNum = cur.fetchall()
+
+            return render_template("bikeTool.html", data=bike_data,data2=lock_data,data3=raffleNum)
         except Exception as e:
         #print(e, file=sys.stdout)
             return redirect(url_for('logout'))
@@ -148,7 +151,6 @@ def staffBikeDBaccess():
             return redirect(url_for('staffBikeDBaccess'))
  
 
-
 @app.route("/editLock",methods=["POST"])
 #@login_required
 @special_requirement
@@ -178,7 +180,7 @@ def editLock():
                     return redirect(url_for('staffBikeDBaccess'))
 
                 if(len(request.form.get('combo'))!=4):
-                    flash("Unsuccessful lock update! Check code length")
+                    flash("Unsuccessful lock update! Check lock combination length")
                     return redirect(url_for('staffBikeDBaccess'))
 
                 try:
@@ -212,7 +214,7 @@ def editLock():
             #update combo
             elif(request.form.get('combo')):
                 if(len(request.form.get('combo'))!=4):
-                    flash("Unsuccessful lock update! Check code length")
+                    flash("Unsuccessful lock update! Check lock type/length combination")
                     return redirect(url_for('staffBikeDBaccess'))
                 try:
                     newCode = int(request.form.get('combo'))
@@ -272,7 +274,7 @@ def setRaffle():
 
             maxRaffleNo = int(request.form.get('maxNum'))
 
-            if(maxRaffleNo > 100 or maxRaffleNo < 1):
+            if(maxRaffleNo > 10 or maxRaffleNo < 0):
                     flash("Unsuccessful limit set add!")
                     return redirect(url_for('staffBikeDBaccess'))
             
@@ -688,12 +690,12 @@ def staffReg():
 
             if not word:
                 flash("Please choose a secret word")
-                return render_template("staff.html")
+                return redirect(url_for('staffReg'))
 
         #check phone #
             if(tele == -1):
                 flash("enter a phone #")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
     
         #for staff user accounts / add 'or' for more admin accounts
             if (user == "green47"):
@@ -702,52 +704,52 @@ def staffReg():
         #all users must agree to terms / (todo: create terms in html)
             if not request.form.get("agreement"):
                 flash("Please read through and agree to terms")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
 
         #check phone #
             if(len(tele) < 9):
                 flash("enter a valid phone #")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
 
         #check email format
             if('@' not in email):
                 flash("invalid email address")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
         #password matching check
             if(password != p2):
                 flash("passwords must match")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
         #verify id check
             if(idNum != i2):
                 flash("id number could not be verified")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if(type(idNum) != int):
                 flash("invalid ID")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
        
         #name, email, username, and password are required
             if not firstName:
                 flash("Please enter your first name")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if not lastName:
                 flash("Please enter your last name")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if not email:
                 flash("Please enter your email")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if not user:
                 flash("Please select a unique username")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if not year:
                 flash("Please select a year")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if not password:
                 flash("Please select a password")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
         #arbitrary length on password limit
             if len(password) > 16:
                 flash("Please select a password fewer than sixteen characters")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
 
         #code to check tables for existing usernames, emails, and ID num since these should be unique per account
             cur.execute("""SELECT EXISTS(SELECT 1 FROM Staff WHERE userID=:un)""",{"un":user})
@@ -757,10 +759,10 @@ def staffReg():
             
             if (checkUser1):
                 flash("username is taken")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
             if (checkEmail1):
                 flash("email address is already registered")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
 
         #check id only for student and staff users
    
@@ -768,7 +770,7 @@ def staffReg():
             checkIDnum1=cur.fetchone()[0]
             if(checkIDnum1):
                 flash("id number is already registered")
-                return render_template("staffReg.html")
+                return redirect(url_for('staffReg'))
 
         #staff user
             if(accType==1):
@@ -778,12 +780,12 @@ def staffReg():
                     flash("Registration Successful for Staff User! Please login.")
                     return redirect(url_for('staffLogin'))
                 except:
-                    return render_template("staffReg.html")
+                    return redirect(url_for('staffReg'))
         
         except Exception as e:
             #print(e, file=sys.stdout)
-            render_template("staffReg.html")
-    return render_template("staffReg.html")
+            redirect(url_for('staffReg'))
+    return redirect(url_for('staffReg'))
 
 @app.route("/stuReg", methods=["GET","POST"])
 def stuReg():
@@ -824,56 +826,56 @@ def stuReg():
 
             if not word:
                 flash("Please choose a secret word")
-                return render_template("stuReg.html")
+                redirect(url_for('stuReg'))
         #all users must agree to terms / (todo: create terms in html)
             if not request.form.get("agreement"):
                 flash("Please read through and agree to the terms")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
 
         #check phone #
             if(tele == -1):
                 flash("enter a phone #")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
 
         #check email format
             if('@' not in email):
                 flash("invalid email address")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
         #password matching check
             if(password != p2):
                 flash("passwords must match")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
         #verify id check
             if(idNum != i2 and accType==2):
                 flash("id number's could not be verified")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if(type(idNum) != int and accType==2):
                 flash("invalid ID")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
        
         #name, email, username, and password are required
             if not firstName:
                 flash("Please enter your first name")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if not lastName:
                 flash("Please enter your last name")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if not email:
                 flash("Please enter your email")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if not user:
                 flash("Please select a unique username")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if not password:
                 flash("Please select a password")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
             if not year:
                 flash("Please select a year")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
         #arbitrary length on password limit
             if len(password) > 16:
                 flash("Please select a password fewer than sixteen characters")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
 
         #code to check tables for existing usernames, emails, and ID num since these should be unique per account
             cur.execute("""SELECT EXISTS(SELECT 1 FROM Students WHERE userID=:un)""",{"un":user})
@@ -885,7 +887,7 @@ def stuReg():
     
             if (checkUser2 or checkEmail2 or checkIDnum2):
                 flash("username, email, or id is already taken")
-                return render_template("stuReg.html")
+                return redirect(url_for('stuReg'))
 
         #student users
             if(accType==2):
@@ -893,13 +895,13 @@ def stuReg():
                     cur.execute("""INSERT INTO Students VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",(user,hashPSW,idNum,firstName,lastName,email,tele,year,school,raffleNum, balance, hashWord))
                     conn.commit()
                     flash("Registration Successful for Student User! Please login.")
-                    return redirect(url_for('homePage'))
+                    return redirect(url_for('stuLogin'))
                 except:
-                    return render_template("stuReg.html")
+                    return redirect(url_for('stuReg'))
         except Exception as e:
             #print(e, file=sys.stdout)
-            render_template("stuReg.html")
-    return render_template("stuReg.html")
+            redirect(url_for('stuReg'))
+    return redirect(url_for('stuReg'))
 
 @app.route("/commReg", methods=["GET","POST"])
 def commReg():
@@ -931,47 +933,47 @@ def commReg():
     
             if not word:
                 flash("Please choose a secret word")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
         #all users must agree to terms / (todo: create terms in html)
             if not request.form.get("agreement"):
                 flash("Please read through and agree to the terms")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
 
         #check phone #
             if(tele == -1):
                 flash("enter a phone #")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
 
         #check email format
             if('@' not in email):
                 flash("invalid email address")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
         #password matching check
             if(password != p2):
                 flash("passwords must match")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
 
        
         #name, email, username, and password are required
             if not firstName:
                 flash("Please enter your first name")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
             if not lastName:
                 flash("Please enter your last name")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
             if not email:
                 flash("Please enter your email")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
             if not user:
                 flash("Please select a unique username")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
             if not password:
                 flash("Please select a password")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
         #arbitrary length on password limit
             if len(password) > 16:
                 flash("Please select a password fewer than sixteen characters")
-                return render_template("commReg.html")
+                return redirect(url_for('commReg'))
 
         #code to check tables for existing usernames, emails, and ID num since these should be unique per account
             cur.execute("""SELECT EXISTS(SELECT 1 FROM Community WHERE userID=:un)""",{"un":user})
@@ -980,8 +982,8 @@ def commReg():
             checkEmail3=cur.fetchone()[0]
             
             if (checkUser3 or checkEmail3):
-                flash("username or email is already taken")
-                return render_template("commReg.html")
+                flash("username or email already taken")
+                return redirect(url_for('commReg'))
     
         #community users        
             if(accType==3):
@@ -991,12 +993,12 @@ def commReg():
                     flash("Registration Successful for Community User! Please login.")
                     return redirect(url_for('commLogin'))
                 except:
-                    return render_template("commReg.html")
+                    return redirect(url_for('commReg'))
                 
         except Exception as e:
             #print(e, file=sys.stdout)
-            render_template("commReg.html")
-    return render_template("commReg.html")
+            redirect(url_for('commReg'))
+    return redirect(url_for('commReg'))
 #end registration 
 
 #begin pw reset
@@ -1394,4 +1396,4 @@ def logout():
 
 
 
-#?TODO: later implementation: delete/update bikes & users?
+#?TODO: delete/update bikes & user info?

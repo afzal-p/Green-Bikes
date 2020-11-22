@@ -88,17 +88,25 @@
 <h2>Add Lock</h2>
 <form method = "post" action="{{ url_for('addLock') }}" >
             <td><input placeholder="LockNo"  name="LockNo" ></td>
-            <td><input placeholder="Code" name="Code"></td>
+            <td><input placeholder="combination" name="Code"></td>
             <td><input type="submit" value="Add Lock"></td>
 </form> 
 <br>
 <h1>Raffle</h1>
 <h2>Set Raffle Slot</h2>
+
+{% for item in data3 %}
+<tr>
+    <td><strong>Current </strong>: {{item[0]}}<br></td>
+</tr>
+{% endfor %}
 <form method = "post" action="{{ url_for('setRaffle') }}" >
             <td><input placeholder="val (1-10) or 10+"  name="maxNum" ></td>
             <td><input type="submit" value="Set Limit"></td>
 </form> 
 
+<br>
+<a href="{{ url_for('homePage') }}"><button>Back</button></a>
 </body>
 
 </html>
