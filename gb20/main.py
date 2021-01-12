@@ -11,7 +11,7 @@ import random
 
 #secret key
 app = Flask(__name__)
-app.secret_key = "fruit_music_COffee_AP_&"
+app.secret_key = "fruit_music_&"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 #app.config['TESTING'] = True
 #app.config['ENV'] = 'development'
@@ -26,7 +26,7 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 #link to db
 #figure out relative path
-DATABASE = '/Users/afzal/Downloads/gb20/gb.db'
+DATABASE = 'gb.db'
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -48,7 +48,7 @@ def special_requirement(f):
     @wraps(f)
     def wrap(*args,**kwargs):
         try:
-            if "green47" == session['user']:
+            if "XXXXXX47" == session['user']:
                 return f(*args,**kwargs)
             else:
                 return redirect(url_for('logout'))
@@ -1388,12 +1388,3 @@ def logout():
     return redirect(url_for('homePage'))
 
       
-
-
-
- #?TODO: later implementation: delete/update bikes,delete/update locks, delete users?
- #reload pages on browser back button
-
-
-
-#?TODO: delete/update bikes & user info?
