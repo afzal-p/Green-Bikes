@@ -1,5 +1,6 @@
 
-Web-App for Pomona Green Bike Shop
+A Web-App for Pomona's Green Bike Shop!
 
-see: https://greenbikes.herokuapp.com
+
+see updated version: https://greenbikes.herokuapp.com
 
